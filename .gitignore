@@ -1,0 +1,10 @@
+.env
+poetry.lock
+node_modules/
+backend/database/raw
+backend/database/vectorstore
+wandb/
+**/__pycache__/
+**/*.ipynb
+**/*.DS_Store
+**/*.js
