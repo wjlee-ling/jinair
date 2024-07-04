@@ -13,7 +13,7 @@ class Flight(BaseModel):
     date: str = Field(description="date of the flight")
     persons: int = Field(1, description="number of persons for booking")
     follow_up: str = Field(description="follow up question for necessary entities")
-    price: Optional[int] = Field(None, description="price of the flight")
+    # price: Optional[int] = Field(None, description="price of the flight")
 
     @validator("origin", allow_reuse=True)
     def postprocess_origin(cls, field):
