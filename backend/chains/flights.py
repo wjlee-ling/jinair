@@ -1,6 +1,6 @@
 import re
 
-from typing import List
+from typing import Optional
 
 from langchain.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
@@ -13,6 +13,7 @@ class Flight(BaseModel):
     destination: str = Field(description="destination city or aiport of the flight")
     date: str = Field(description="date of the flight")
     persons: int = Field(description="number of persons for booking")
+    price: Optional[int] = Field(1, description="price of the flight")
 
     @validator("origin")
     def question_ends_with_question_mark(cls, field):
