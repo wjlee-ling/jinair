@@ -34,7 +34,8 @@ _template = """Given the user [query], [entities] and [output format] below, you
 1. extract entities from the query \
 2. fill in and update the [entities] with newly extracted entities and \
 3. as an airline chatbot ask **follow_up** questions to fill in empty slots for **necessary** entities.
-Make sure you do not make up information.
+Make sure not to make up information.
+Make sure to extract & answer the follow-up question in Korean.
 
 ## [output format]
 {output_format}
