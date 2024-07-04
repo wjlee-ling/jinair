@@ -48,9 +48,15 @@ Make sure you do not make up information.
 ## [output]
 """
 
-parser = PydanticOutputParser(pydantic_object=Flight)
-prompt = PromptTemplate(
-    template=_template,
-    input_variables=["query", "state_entities"],
-    partial_variables={"output_format": parser.get_format_instructions()},
-)
+
+def get_flights_chain(model_name: str = "gpt-3.5-turbo-0125"):
+    llm = ChatOpenAI(model_name=model_name, temperature=0.0, verbose=True)
+    parser = PydanticOutputParser(pydantic_object=Flight)
+    prompt = PromptTemplate(
+        template=_template,
+        input_variables=["query", "state_entities"],
+        partial_variables={"output_format": parser.get_format_instructions()},
+    )
+
+    chain = prompt | llm | parser
+    return chain
