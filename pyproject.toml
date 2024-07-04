@@ -12,6 +12,7 @@ langchain-openai = "^0.1.14"
 streamlit = "^1.36.0"
 python-dotenv = "^1.0.1"
 langchain-community = "^0.2.6"
+psycopg2 = "^2.9.9"
 
 
 [build-system]
