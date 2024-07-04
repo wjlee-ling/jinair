@@ -17,6 +17,14 @@ load_dotenv(find_dotenv())
 AWS_RDS_PASSWORD = os.getenv("AWS_RDS_PASSWORD")
 AWS_RDS_HOST = os.getenv("AWS_RDS_HOST")
 
+MAP_AIRPORTS = {
+    "인천": "서울/인천",
+    "서울": "서울/인천",
+    "서울 인천": "서울/인천",
+    "나리타": "도쿄/나리타",
+    "도쿄": "도쿄/나리타",
+}
+
 
 class Flight(BaseModel):
     origin: str = Field(description="origin city or airport of the flight")
@@ -28,17 +36,21 @@ class Flight(BaseModel):
 
     @validator("origin", allow_reuse=True)
     def postprocess_origin(cls, field):
-        if field.endswith("공항"):
-            return re.sub("공항", "", field).strip()
+        field = re.sub("공항", "", field)
+        field = re.sub("국제", "", field).strip()
+        if field in MAP_AIRPORTS:
+            field = MAP_AIRPORTS[field]
 
-        return field.strip()
+        return field
 
     @validator("destination", allow_reuse=True)
     def postprocess_destination(cls, field):
-        if field.endswith("공항"):
-            return re.sub("공항", "", field).strip()
+        field = re.sub("공항", "", field)
+        field = re.sub("국제", "", field).strip()
+        if field in MAP_AIRPORTS:
+            field = MAP_AIRPORTS[field]
 
-        return field.strip()
+        return field
 
 
 _template = """Given the user [query], [entities] and [output format] below, you are to:
@@ -68,6 +80,7 @@ Wrap each column name in double quotes (") to denote them as delimited identifie
 Make sure to use `ILIKE` rather than `=` for 'origin' and 'destination'.
 Make sure to use only the columns you can see in the tables below. Be careful to not query for columns that do not exist.
 Make sure to format the values of [input] according to the corresponding data types given in the [table info].
+Make sure to set the year of the date to 2024 even if it is not mentioned.
 
 ## table info:
 {table_info}
@@ -77,7 +90,7 @@ input:
 {{'origin': '인천', 'destination': '나리타', 'date': '7월 12일', 'persons': 1}}
 
 SQLQuery: 
-SELECT * FROM flights WHERE origin ILIKE '인천' AND destination ILIKE '나리타' AND date ILIKE '7월 12일' AND persons = 1 LIMIT 3
+SELECT * FROM flights WHERE origin ILIKE '인천' AND destination ILIKE '나리타' AND departure_date = '2024-07-12' AND persons = 1 LIMIT 3
 
 ## [input]
 {input}
@@ -141,18 +154,9 @@ def get_flights_SQL_chain(
     ).with_config(run_name="check_if_no_search_results")
 
     # # 검색 결과(`observations`) 뿐만 아니라 검색에 활용된 `sql_query`도 같이 반환하여 LLM이 할루시네이션을 하지 않도록 합니다.
-    # chain = (
-    #     RunnableParallel(
-    #         sql_query=write_query | rewrite_query,
-    #     )
-    #     .assign(
-    #         observations=itemgetter("sql_query")
-    #         | execute_query
-    #         | check_if_no_search_results
-    #     )
-    #     .with_config(run_name="run sql query chain")
-    # )
-
-    # response = chain.invoke({"question": inputs})
-
-    # return response
+    chain = (
+        write_query
+        | execute_query
+        # .with_config(run_name="run sql query chain")
+    )
+    return chain
