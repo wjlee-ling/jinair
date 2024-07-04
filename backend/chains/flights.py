@@ -140,7 +140,9 @@ def get_flights_SQL_chain(llm):
 
     return_no_result_messages = RunnableLambda(
         lambda result: (
-            "해당 조건을 만족하는 항공편이 없습니다." if result == "" else result
+            "해당 조건을 만족하는 항공편이 없습니다. 새로 검색하시겠습니까?"
+            if result == ""
+            else result
         )
     ).with_config(run_name="return_no_result_messages")
 
