@@ -21,8 +21,8 @@ chain_entity_flights = get_flights_chain(llm=llm)
 chain_sql_flights = get_flights_SQL_chain(llm=llm)
 
 response = chain_entity_flights.invoke(
-    {"query": "7월 5일에 인천에서 나리타 공항 성인 1명", "state_entities": ""}
+    {"query": "도쿄행 7월 5일 출발", "state_entities": ""}
 )
 sql_command = chain_sql_flights.invoke({"question": str(response.dict())})
-print(response.dict())
-print(sql_command)
+# print(response.dict())
+# print(sql_command)

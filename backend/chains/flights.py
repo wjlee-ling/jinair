@@ -112,18 +112,14 @@ def get_flights_chain(llm):
     return chain
 
 
-def get_flights_SQL_chain(
-    llm,
-):
+def get_flights_SQL_chain(llm):
 
-    # PostgreSQL 기반 AWS RDS에 연결
     db = SQLDatabase.from_uri(
         f"postgresql+psycopg2://root:{AWS_RDS_PASSWORD}@{AWS_RDS_HOST}:5432/textnet",
         include_tables=["flights"],
         sample_rows_in_table_info=2,
     )
 
-    # Langchain의 `create_sql_query_chain`을 사용하여 자연어 질의를 SQL 쿼리로 바꿉니다.
     write_query = create_sql_query_chain(
         llm,
         db,
@@ -138,25 +134,17 @@ def get_flights_SQL_chain(
     #     run_name="rewrite_query"
     # )
 
-    # SQL 쿼리를 실행하여 DB에서 검색 결과를 가져옵니다.
     execute_query = QuerySQLDataBaseTool(db=db).with_config(
         run_time="execute_sql_query"
     )
 
-    # # 검색 결과가 없을 시, 빈 스트링("") 대신 없다고 명시하여 LLM이 할루시네이션을 하지 않도록 합니다.
-    check_if_no_search_results = RunnableLambda(
-        # _check_if_no_search_results
+    return_no_result_messages = RunnableLambda(
         lambda result: (
-            "No product found. Ask the customer if they want to search for something else."
-            if result == ""
-            else result
+            "해당 조건을 만족하는 항공편이 없습니다." if result == "" else result
         )
-    ).with_config(run_name="check_if_no_search_results")
+    ).with_config(run_name="return_no_result_messages")
 
-    # # 검색 결과(`observations`) 뿐만 아니라 검색에 활용된 `sql_query`도 같이 반환하여 LLM이 할루시네이션을 하지 않도록 합니다.
-    chain = (
-        write_query
-        | execute_query
-        # .with_config(run_name="run sql query chain")
+    chain = (write_query | execute_query | return_no_result_messages).with_config(
+        run_name="search_flights_from_db"
     )
     return chain
