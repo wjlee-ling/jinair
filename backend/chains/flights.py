@@ -158,7 +158,7 @@ def get_flights_SQL_chain(llm):
         new_sql_query = (
             sql_query[:start_idx]
             + f"departure_date BETWEEN (DATE {departure_date} - INTERVAL '1 month') AND (DATE {departure_date} + INTERVAL '1 month')"
-            + sql_query[end_idx - 1 :]
+            + sql_query[end_idx:]
         )
         # print(new_sql_query)
         new_results = db.run(new_sql_query)
