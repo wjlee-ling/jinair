@@ -176,7 +176,7 @@ def get_flights_SQL_chain(llm):
         lambda prev_dict: (
             _rewrite_query(prev_dict) if prev_dict["results"] == "" else prev_dict
         )
-    )
+    ).with_config(run_name="retry_if_no_results")
 
     chain = (write_text2sql | retry_if_no_results).with_config(
         run_name="search_flights_from_db"
