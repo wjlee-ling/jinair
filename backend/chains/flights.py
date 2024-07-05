@@ -122,29 +122,6 @@ def get_flights_SQL_chain(llm):
         sample_rows_in_table_info=2,
     )
 
-    write_query = create_sql_query_chain(
-        llm,
-        db,
-        k=3,
-        prompt=Text2SQL_PROMPT,
-    ).with_config(
-        run_name="write_sql_query"
-    )  # https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/sql_database/query.py
-
-    # # `write_query`에서 만들어진 쿼리에 임베딩할 단어가 있거나, 오류가 있을 시 쿼리를 수정합니다.
-    # rewrite_query = RunnableLambda(lambda sql_query: _get_query(sql_query)).with_config(
-    #     run_name="rewrite_query"
-    # )
-
-    execute_query = QuerySQLDataBaseTool(db=db).with_config(
-        run_time="execute_sql_query"
-    )
-
-    write_text2sql = write_query | {
-        "sql_query": RunnablePassthrough(),
-        "results": execute_query,
-    }
-
     def _rewrite_query(prev_dict) -> dict:
         sql_query = prev_dict["sql_query"]
         departure_part = re.search(
@@ -171,6 +148,29 @@ def get_flights_SQL_chain(llm):
             response = "원래 고객이 원한 날짜 앞뒤로 항공편이 없으니 죄송함을 표현 후 새로운 항공편 검색 원하는지 물어보기"
 
         return {"sql_query": new_sql_query, "results": response}
+
+    write_query = create_sql_query_chain(
+        llm,
+        db,
+        k=3,
+        prompt=Text2SQL_PROMPT,
+    ).with_config(
+        run_name="write_sql_query"
+    )  # https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/sql_database/query.py
+
+    # # `write_query`에서 만들어진 쿼리에 임베딩할 단어가 있거나, 오류가 있을 시 쿼리를 수정합니다.
+    # rewrite_query = RunnableLambda(lambda sql_query: _get_query(sql_query)).with_config(
+    #     run_name="rewrite_query"
+    # )
+
+    execute_query = QuerySQLDataBaseTool(db=db).with_config(
+        run_time="execute_sql_query"
+    )
+
+    write_text2sql = write_query | {
+        "sql_query": RunnablePassthrough(),
+        "results": execute_query,
+    }
 
     retry_if_no_results = RunnableLambda(
         lambda prev_dict: (
