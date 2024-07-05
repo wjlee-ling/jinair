@@ -11,6 +11,8 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field, validator
 from langchain_core.runnables import (
     RunnableLambda,
+    RunnableParallel,
+    RunnablePassthrough,
 )
 
 load_dotenv(find_dotenv())
@@ -138,15 +140,46 @@ def get_flights_SQL_chain(llm):
         run_time="execute_sql_query"
     )
 
-    return_no_result_messages = RunnableLambda(
-        lambda result: (
-            "해당 조건을 만족하는 항공편이 없습니다. 새로 검색하시겠습니까?"
-            if result == ""
-            else result
-        )
-    ).with_config(run_name="return_no_result_messages")
+    write_text2sql = write_query | {
+        "sql_query": RunnablePassthrough(),
+        "results": execute_query,
+    }
 
-    chain = (write_query | execute_query | return_no_result_messages).with_config(
+    def _rewrite_query(prev_dict) -> dict:
+        sql_query = prev_dict["sql_query"]
+        departure_part = re.search(
+            r"departure_date [=><]+ ['\-0-9 ]+", sql_query
+        )  # -> departure_date = '2024-07-05'
+        (start_idx, end_idx) = departure_part.span()
+        departure_date = (
+            re.search(r"['\-0-9]+", departure_part.group()).group().strip()
+        )  #  -> '2024-07-05'
+
+        new_sql_query = (
+            sql_query[:start_idx]
+            + f"departure_date BETWEEN (DATE {departure_date} - INTERVAL '1 month') AND (DATE {departure_date} + INTERVAL '1 month')"
+            + sql_query[end_idx - 1 :]
+        )
+        # print(new_sql_query)
+        new_results = db.run(new_sql_query)
+        if new_results:
+            response = (
+                "원래 고객이 원한 날짜에 항공편이 없어 출발일을 조정하여 새로 검색한 결과:\n"
+                + new_results
+            )
+        else:
+            response = "원래 고객이 원한 날짜 앞뒤로 항공편이 없으니 죄송함을 표현 후 새로운 항공편 검색 원하는지 물어보기"
+
+        return {"sql_query": new_sql_query, "results": response}
+
+    retry_if_no_results = RunnableLambda(
+        lambda prev_dict: (
+            _rewrite_query(prev_dict) if prev_dict["results"] == "" else prev_dict
+        )
+    )
+
+    chain = (write_text2sql | retry_if_no_results).with_config(
         run_name="search_flights_from_db"
     )
+
     return chain
