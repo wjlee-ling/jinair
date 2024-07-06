@@ -95,10 +95,10 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 {{ 'date': '2024-08-19' }}
 
 ## query
-제주 비행기
+제주 가는 비행기
 
 ## output
-{{ "origin": "김포", "destination": "제주", "date": "2024-08-19", "persons": 1 }}
+{{ "origin": "", "destination": "제주", "date": "2024-08-19", "persons": 1 }}
 
 
 ## entities
