@@ -2,18 +2,23 @@ import os
 import re
 
 from dotenv import find_dotenv, load_dotenv
+from typing import Type
 
 from langchain.chains import create_sql_query_chain
 from langchain.output_parsers import PydanticOutputParser
+from langchain.tools import BaseTool, tool
 from langchain_community.utilities import SQLDatabase
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field, validator
 from langchain_core.runnables import (
+    Runnable,
     RunnableLambda,
     RunnableParallel,
     RunnablePassthrough,
 )
+
 
 load_dotenv(find_dotenv())
 AWS_RDS_PASSWORD = os.getenv("AWS_RDS_PASSWORD")
@@ -28,7 +33,7 @@ MAP_AIRPORTS = {
 }
 
 
-class Flight(BaseModel):
+class FlightSchedule(BaseModel):
     origin: str = Field(description="origin city or airport of the flight")
     destination: str = Field(description="destination city or aiport of the flight")
     date: str = Field(description="date of the flight")
@@ -103,7 +108,7 @@ Text2SQL_PROMPT = PromptTemplate.from_template(template=_Text2SQL_template)
 
 def get_flights_chain(llm):
 
-    parser = PydanticOutputParser(pydantic_object=Flight)
+    parser = PydanticOutputParser(pydantic_object=FlightSchedule)
     prompt = PromptTemplate(
         template=_template,
         input_variables=["query", "state_entities"],
@@ -183,3 +188,46 @@ def get_flights_SQL_chain(llm):
     )
 
     return chain
+
+
+@tool
+def fill_slots(query: str, entities: Type[FlightSchedule], llm):
+    """useful to extract flight booking info entities: origin, destination, date, persons (the number of passengers) and update them based on conversation"""
+    chain = get_flights_chain(llm)
+    entities = chain.invoke({"query": query, "state_entities": entities.dict()})
+    return entities
+
+
+@tool
+def say_gibberish(query: str):
+    """useful to communicate with the user about anything stupid"""
+    return query
+
+
+class FlightScheduleInput(BaseModel):
+    user_query: str = Field(
+        description="Should be a user inqury as it is without any modification"
+    )
+    entities: Type[FlightSchedule]
+
+
+class FlightScheduleTool(BaseTool):
+    llm: BaseChatModel
+    name = "FlightSchedule"
+    description = "useful when the user wants to book a flight or searches for flight schedules that satisfy conditions"
+    # args_schema: Type[BaseModel] = FlightSchedule
+    return_direct: bool = False
+
+    def _run(self, user_query: str, entities: FlightSchedule = {}):
+        """
+        Args:
+            - user_query : the user input as it is without modification.
+        """
+        slotFiller = get_flights_chain(llm=self.llm)
+        entities = slotFiller.invoke(
+            {
+                "query": user_query,
+                "state_entities": entities.dict() if entities else "",
+            }
+        )
+        return entities
