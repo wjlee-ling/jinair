@@ -33,12 +33,12 @@ MAP_AIRPORTS = {
 }
 
 
-class FlightSchedule(BaseModel):
+class FlightCondition(BaseModel):
     origin: str = Field(description="origin city or airport of the flight")
     destination: str = Field(description="destination city or aiport of the flight")
     date: str = Field(description="date of the flight")
     persons: int = Field(1, description="number of persons for booking")
-    follow_up: str = Field(description="follow up question for necessary entities")
+    # follow_up: str = Field(description="follow up question for necessary entities")
     # price: Optional[int] = Field(None, description="price of the flight")
 
     @validator("origin", allow_reuse=True)
@@ -66,7 +66,6 @@ _template = """Given the user [query], [entities] and [output format] below, you
 3. as an airline chatbot ask **follow_up** questions to fill in empty slots for **necessary** entities.
 Make sure not to make up information.
 Make sure to extract & answer the follow-up question in Korean.
-Make sure to leave 'follow-up' empty when all the rest entities are extracted.
 
 ## [output format]
 {output_format}
@@ -102,13 +101,14 @@ SELECT * FROM flights WHERE origin ILIKE '인천' AND destination ILIKE '나리�
 ## [input]
 {input}
 
+SQLQuery:
 """
 Text2SQL_PROMPT = PromptTemplate.from_template(template=_Text2SQL_template)
 
 
 def get_flights_chain(llm):
 
-    parser = PydanticOutputParser(pydantic_object=FlightSchedule)
+    parser = PydanticOutputParser(pydantic_object=FlightCondition)
     prompt = PromptTemplate(
         template=_template,
         input_variables=["query", "state_entities"],
@@ -126,6 +126,14 @@ def get_flights_SQL_chain(llm):
         include_tables=["flights"],
         sample_rows_in_table_info=2,
     )
+
+    def _handle_query_error(query):
+        if not query.startswith("SELECT"):
+            query = query.strip("`")
+            query = query.strip("sql")
+            query = query.strip("\n")
+            return query
+        return query
 
     def _rewrite_query(prev_dict) -> dict:
         sql_query = prev_dict["sql_query"]
@@ -146,7 +154,7 @@ def get_flights_SQL_chain(llm):
         new_results = db.run(new_sql_query)
         if new_results:
             response = (
-                "원래 고객이 원한 날짜에 항공편이 없어 출발일을 조정하여 새로 검색한 결과:\n"
+                "## 원래 **고객이 원한 날짜에 항공편이 없어** 출발일을 조정하여 새로 검색한 결과라는 것을 강조하기##\n"
                 + new_results
             )
         else:
@@ -163,19 +171,23 @@ def get_flights_SQL_chain(llm):
         run_name="write_sql_query"
     )  # https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/sql_database/query.py
 
-    # # `write_query`에서 만들어진 쿼리에 임베딩할 단어가 있거나, 오류가 있을 시 쿼리를 수정합니다.
-    # rewrite_query = RunnableLambda(lambda sql_query: _get_query(sql_query)).with_config(
-    #     run_name="rewrite_query"
-    # )
+    # `write_query`에서 만들어진 쿼리에 임베딩할 단어가 있거나, 오류가 있을 시 쿼리를 수정합니다.
+    handle_query_error = RunnableLambda(
+        lambda sql_query: _handle_query_error(sql_query)
+    ).with_config(run_name="rewrite_query")
 
     execute_query = QuerySQLDataBaseTool(db=db).with_config(
         run_time="execute_sql_query"
     )
 
-    write_text2sql = write_query | {
-        "sql_query": RunnablePassthrough(),
-        "results": execute_query,
-    }
+    write_text2sql = (
+        write_query
+        | handle_query_error
+        | {
+            "sql_query": RunnablePassthrough(),
+            "results": execute_query,
+        }
+    )
 
     retry_if_no_results = RunnableLambda(
         lambda prev_dict: (
@@ -190,44 +202,34 @@ def get_flights_SQL_chain(llm):
     return chain
 
 
-@tool
-def fill_slots(query: str, entities: Type[FlightSchedule], llm):
-    """useful to extract flight booking info entities: origin, destination, date, persons (the number of passengers) and update them based on conversation"""
-    chain = get_flights_chain(llm)
-    entities = chain.invoke({"query": query, "state_entities": entities.dict()})
-    return entities
-
-
-@tool
-def say_gibberish(query: str):
-    """useful to communicate with the user about anything stupid"""
-    return query
-
-
-class FlightScheduleInput(BaseModel):
-    user_query: str = Field(
-        description="Should be a user inqury as it is without any modification"
-    )
-    entities: Type[FlightSchedule]
-
-
 class FlightScheduleTool(BaseTool):
     llm: BaseChatModel
     name = "FlightSchedule"
     description = "useful when the user wants to book a flight or searches for flight schedules that satisfy conditions"
-    # args_schema: Type[BaseModel] = FlightSchedule
+    args_schema: Type[BaseModel] = FlightCondition
     return_direct: bool = False
 
-    def _run(self, user_query: str, entities: FlightSchedule = {}):
+    def _run(
+        self,
+        origin: str,
+        destination: str,
+        date: str,
+        persons: int = 1,
+    ):  # entities: FlightSchedule = {}
         """
         Args:
             - user_query : the user input as it is without modification.
         """
-        slotFiller = get_flights_chain(llm=self.llm)
-        entities = slotFiller.invoke(
+        entities = {
+            "origin": origin,
+            "destination": destination,
+            "date": date,
+            "persons": persons,
+        }
+        search_SQL_Chain = get_flights_SQL_chain(llm=self.llm)
+        response = search_SQL_Chain.invoke(
             {
-                "query": user_query,
-                "state_entities": entities.dict() if entities else "",
+                "question": str(entities),
             }
         )
-        return entities
+        return response

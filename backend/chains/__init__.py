@@ -1,7 +1,6 @@
 from .flights import (
     get_flights_chain,
     get_flights_SQL_chain,
-    FlightSchedule,
     FlightScheduleTool,
 )
 
@@ -20,7 +19,7 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"] = "jinair"
 
 
-MODEL_NAME = "gpt-4o"  # "gpt-3.5-turbo-0125"
+MODEL_NAME = "gpt-3.5-turbo-0125"
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
 
 llm = ChatOpenAI(model_name=MODEL_NAME, temperature=0.0, verbose=True)
@@ -51,7 +50,7 @@ agent = create_tool_calling_agent(llm, tools, prompt)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 
-entities = FlightSchedule(origin="", destination="", date="", persons=1, follow_up="")
-resp = agent_executor.invoke({"input": "도쿄행 출발"})
-for step in agent_executor.iter({"input": "도쿄행 출발"}):
+user_input = {"input": "인천에서 도쿄 가는 8월 3일 비행기"}
+# resp = agent_executor.invoke({"input": "도쿄 가는 비행기"})
+for step in agent_executor.iter(user_input):
     print(step)
