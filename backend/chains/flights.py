@@ -34,9 +34,9 @@ MAP_AIRPORTS = {
 
 
 class FlightCondition(BaseModel):
-    origin: str = Field(description="origin city or airport of the flight")
-    destination: str = Field(description="destination city or aiport of the flight")
-    date: str = Field(description="date of the flight")
+    origin: str = Field(description="origin city or airport the user departs from")
+    destination: str = Field(description="destination city or aiport the user flies to")
+    date: str = Field(description="date the user wants to book a flight for")
     persons: int = Field(1, description="number of persons for booking")
     # follow_up: str = Field(description="follow up question for necessary entities")
     # price: Optional[int] = Field(None, description="price of the flight")
@@ -60,23 +60,54 @@ class FlightCondition(BaseModel):
         return field
 
 
-_template = """Given the user [query], [entities] and [output format] below, you are to:
+_template = """Given the query, entities and output format below, you are to:
 1. extract entities from the query \
-2. fill in and update the [entities] with newly extracted entities and \
-3. as an airline chatbot ask **follow_up** questions to fill in empty slots for **necessary** entities.
-Make sure not to make up information.
-Make sure to extract & answer the follow-up question in Korean.
+2. fill in and update the entities with newly extracted entities.
 
-## [output format]
+Make sure not to make up information or infer. You should only **extract** entities from the given query.
+Make sure the year is 2024 when it is not specified in the query.
+Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if there are such words.
+
+## output format
 {output_format}
 
-## [entities]
+## entities
+{{}}
+
+## query
+8월 이후 인천행 비행기 예약
+
+## output
+{{ "origin": "", "destination": "인천", "date": "gte 8월 ", "persons": 1 }}
+
+
+## entities
+{{}}
+
+## query
+7월 8일 인천-나리타 성인 하나 아이 둘
+
+## output
+{{ "origin": "인천", "destination": "나리타", "date": "2024-07-08", "persons": 3 }}
+
+
+## entities
+{{ 'date': '2024-08-19' }}
+
+## query
+제주 비행기
+
+## output
+{{ "origin": "김포", "destination": "제주", "date": "2024-08-19", "persons": 1 }}
+
+
+## entities
 {state_entities}
 
-## [query]
+## query
 {query}
 
-## [output]
+## output
 """
 
 _Text2SQL_template = """You are a PostgreSQL expert. Given an input, first create a syntactically correct PostgreSQL query to run, then look at the results of the query and return the answer to the input question. \
