@@ -9,6 +9,7 @@ from langchain.output_parsers import PydanticOutputParser
 from langchain.tools import BaseTool, tool
 from langchain_community.utilities import SQLDatabase
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field, validator
@@ -65,7 +66,7 @@ _template = """Given the query, entities and output format below, you are to:
 2. fill in and update the entities with newly extracted entities.
 
 Make sure not to make up information or infer. You should only **extract** entities from the given query.
-Make sure the year is 2024 when it is not specified in the query.
+Make sure the date is in the format 'YYYY-MM-DD'. And the year ('YYYY') is 2024 if not specified in the query.
 Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if there are such words.
 
 ## output format
@@ -78,7 +79,7 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 8월 이후 인천행 비행기 예약
 
 ## output
-{{ "origin": "", "destination": "인천", "date": "gte 8월 ", "persons": 1 }}
+{{ "origin": "", "destination": "인천", "date": "gte 8월", "persons": 1 }}
 
 
 ## entities
@@ -233,34 +234,65 @@ def get_flights_SQL_chain(llm):
     return chain
 
 
-class FlightScheduleTool(BaseTool):
+class FlightFinder(BaseTool):
     llm: BaseChatModel
-    name = "FlightSchedule"
-    description = "useful when the user wants to book a flight or searches for flight schedules that satisfy conditions"
-    args_schema: Type[BaseModel] = FlightCondition
-    return_direct: bool = False
+    slot_filler: Runnable
+    sql_runner: Runnable
+    callbacks: list[BaseCallbackHandler]
+    description = "useful when the user wants to searches for flight schedules that satisfy conditions. Before searching, the tool extracts entities from the query."
+    name = "FlightFinder"
 
-    def _run(
-        self,
-        origin: str,
-        destination: str,
-        date: str,
-        persons: int = 1,
-    ):  # entities: FlightSchedule = {}
-        """
-        Args:
-            - user_query : the user input as it is without modification.
-        """
-        entities = {
-            "origin": origin,
-            "destination": destination,
-            "date": date,
-            "persons": persons,
-        }
-        search_SQL_Chain = get_flights_SQL_chain(llm=self.llm)
-        response = search_SQL_Chain.invoke(
-            {
-                "question": str(entities),
-            }
-        )
+    def _is_slot_empty(self, entities: dict):
+        empty_slots = [entity for entity, value in entities.items() if value == ""]
+        if empty_slots == []:
+            return False
+        return empty_slots
+
+    def _ask_follow_up(self, empty_slots: list):
+        reply = "항공권 검색을 위해 " + ", ".join(empty_slots) + " 정보가 필요합니다."
+        return reply
+
+    def _run(self, query: str):
+        states = self.callbacks[0].entities
+        entities = self.slot_filler.invoke(
+            {"query": query, "state_entities": states},
+            config={"callbacks": self.callbacks},
+        ).dict()
+
+        if empty_slots := self._is_slot_empty(entities):
+            return self._ask_follow_up(empty_slots)
+
+        response = self.sql_runner.invoke({"question": str(entities)})
         return response
+
+
+# class FlightScheduleTool(BaseTool):
+#     llm: BaseChatModel
+#     name = "FlightSchedule"
+#     description = "useful when the user wants to book a flight or searches for flight schedules that satisfy conditions"
+#     # args_schema: Type[BaseModel] = FlightCondition
+#     return_direct: bool = False
+
+#     def _run(
+#         self,
+#         query: str,
+#         # origin: str,
+#         # destination: str,
+#         # date: str,
+#         # persons: int = 1,
+#     ):  # entities: FlightSchedule = {}
+#         extract_entities_chain = get_flights_chain(self.llm)
+#         entities = extract_entities_chain.invoke({"query": query, "state_entities": {}})
+#         entities = {
+#             "origin": origin,
+#             "destination": destination,
+#             "date": date,
+#             "persons": persons,
+#         }
+#         search_SQL_Chain = get_flights_SQL_chain(llm=self.llm)
+#         response = search_SQL_Chain.invoke(
+#             {
+#                 "question": str(entities),
+#             }
+#         )
+#         return response
