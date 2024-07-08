@@ -2,7 +2,9 @@ from enum import Enum
 from operator import itemgetter
 
 from langchain.output_parsers.enum import EnumOutputParser
+from langchain_core.messages import get_buffer_string
 from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnableLambda
 
 
 class Intent(Enum):
@@ -12,7 +14,7 @@ class Intent(Enum):
 
 _TEMPLATE = """Given the chat history, query and output format, you are to classify the intent of the query.
 Make sure to classify the intent of the query based on the chat history and query given. But refer to relevant information only from the chat history.
-Make sure to return only the intent given in the output format.
+Make sure to return only the intent given in the output format without any prefix or suffix.
 
 ## output format
 {output_format}
@@ -36,7 +38,11 @@ def get_intent_classifier(llm):
     )
 
     intent_classifier_chain = (
-        {"chat_history": itemgetter("chat_history"), "query": itemgetter("query")}
+        {
+            "chat_history": itemgetter("chat_history")
+            | RunnableLambda(lambda x: get_buffer_string(x)),
+            "query": itemgetter("query"),
+        }
         | prompt
         | llm
         | parser
