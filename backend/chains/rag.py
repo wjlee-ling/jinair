@@ -1,5 +1,7 @@
 from ..embeddings_bm25 import get_trained_kiwi_retriever
 
+from operator import itemgetter
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
@@ -34,7 +36,10 @@ retriever = get_trained_kiwi_retriever(CORPUS_PATH, ["Q", "A"])
 
 def get_QnA_chain(llm):
     rag_chain = (
-        {"context": retriever | _format_docs, "question": RunnablePassthrough()}
+        {
+            "context": itemgetter("input") | retriever | _format_docs,
+            "question": itemgetter("input"),
+        }
         | prompt
         | llm
         | StrOutputParser()
