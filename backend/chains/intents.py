@@ -11,13 +11,14 @@ class Intent(Enum):
 
 
 _TEMPLATE = """Given the chat history, query and output format, you are to classify the intent of the query.
+Make sure to classify the intent of the query based on the chat history and query given. But refer to relevant information only from the chat history.
 Make sure to return only the intent given in the output format.
-
-## chat history
-{chat_history}
 
 ## output format
 {output_format}
+
+## chat history
+{chat_history}
 
 ## query
 {query}
