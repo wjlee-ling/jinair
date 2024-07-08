@@ -1,8 +1,8 @@
 from enum import Enum
+from operator import itemgetter
 
 from langchain.output_parsers.enum import EnumOutputParser
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
 
 
 class Intent(Enum):
@@ -35,7 +35,7 @@ def get_intent_classifier(llm):
     )
 
     intent_classifier_chain = (
-        {"chat_history": RunnablePassthrough(), "query": RunnablePassthrough()}
+        {"chat_history": itemgetter("chat_history"), "query": itemgetter("query")}
         | prompt
         | llm
         | parser
