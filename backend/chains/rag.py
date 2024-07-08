@@ -10,7 +10,6 @@ os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"] = "jinair"
 
-MODEL_NAME = "gpt-3.5-turbo-0125"
 CORPUS_PATH = "qna_0708.csv"
 
 template = """Answer the question based only on the following context:
@@ -18,6 +17,7 @@ template = """Answer the question based only on the following context:
 {context}
 
 Question: {question}
+A: 
 """
 
 
@@ -25,18 +25,20 @@ def _format_docs(docs):
     return "\n\n".join([d.page_content for d in docs])
 
 
+def _strip(string):
+    return string.lstrip("A:").strip()
+
+
 prompt = ChatPromptTemplate.from_template(template)
-llm = ChatOpenAI(model_name=MODEL_NAME, temperature=0.0, verbose=True)
-retriever = get_trained_kiwi_retriever(
-    "/Users/lwj/workspace/jinair/qna_0708.csv", ["Q", "A"]
-)
+retriever = get_trained_kiwi_retriever(CORPUS_PATH, ["Q", "A"])
 
-chain = (
-    {"context": retriever | _format_docs, "question": RunnablePassthrough()}
-    | prompt
-    | llm
-    | StrOutputParser()
-)
 
-resp = chain.invoke("기내식 예약할 수 있나요?")
-print(resp)
+def get_QnA_chain(llm):
+    rag_chain = (
+        {"context": retriever | _format_docs, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
+        | _strip
+    ).with_config(run_name="RAG_chain_for_QnA")
+    return rag_chain
