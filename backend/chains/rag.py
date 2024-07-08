@@ -12,10 +12,14 @@ os.environ["LANGCHAIN_PROJECT"] = "jinair"
 
 CORPUS_PATH = "qna_0708.csv"
 
-template = """Answer the question based only on the following context:
+template = """Answer the question based only on the following context. \
+If you need more information to better answer the question, please kindly ask for it. \
+Make sure to answer in the lanuage of the Question. 
 
+## context
 {context}
 
+##
 Question: {question}
 A: 
 """
