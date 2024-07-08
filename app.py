@@ -96,26 +96,26 @@ if prompt := st.chat_input(""):
                     "callbacks": [st_callback],
                 },
             )
+            answer = ""
+            for output in outputs:
+                for msg in output["messages"]:
+                    if isinstance(msg, (AIMessageChunk, AIMessage)):
+                        msg_chunk = msg.content
+                        if not answer.endswith(msg_chunk):
+                            answer += "\n" + (msg.content)
+                            sst.reply_placeholder.markdown(answer)
+
+                # if "intermediate_steps" in output:
+                #     intermediate = output["intermediate_steps"]
+            final_answer = answer
+
         elif intent.name == "ask_QnA":
             outputs = sst.QnA_chain.stream(
                 {"input": prompt},  # , "chat_history": sst.messages
-                config={"callbacks": [st_callback]},
+                # config={"callbacks": [st_callback]},
             )
-
-        answer = ""
-        print("🩷" * 3, outputs)
-        for output in outputs:
-            for msg in output["messages"]:
-                if isinstance(msg, (AIMessageChunk, AIMessage)):
-                    msg_chunk = msg.content
-                    if not answer.endswith(msg_chunk):
-                        answer += "\n" + (msg.content)
-                        sst.reply_placeholder.markdown(answer)
-
-            if "intermediate_steps" in output:
-                intermediate = output["intermediate_steps"]
-
-        final_answer = answer
+            sst.reply_placeholder.markdown(outputs)
+            final_answer = outputs
 
     sst.messages.append(HumanMessage(content=prompt))
     sst.messages.append(AIMessage(content=final_answer))
