@@ -72,6 +72,8 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 ## output format
 {output_format}
 
+---
+
 ## entities
 {{}}
 
@@ -81,6 +83,7 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 ## output
 {{ "origin": "", "destination": "인천", "date": "gte 8월", "persons": 1 }}
 
+---
 
 ## entities
 {{}}
@@ -91,6 +94,7 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 ## output
 {{ "origin": "인천", "destination": "나리타", "date": "2024-07-08", "persons": 3 }}
 
+---
 
 ## entities
 {{ 'date': '2024-08-19' }}
@@ -101,6 +105,18 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 ## output
 {{ "origin": "", "destination": "제주", "date": "2024-08-19", "persons": 1 }}
 
+---
+
+## entities
+{{ 'origin': '서울/인천', 'destination': '제주', 'date': 'gte 2024-07-05', 'persons': 1 }}
+
+## query
+김포에서 가는 건 없어?
+
+## output
+{{ "origin": "김포", "destination": "제주", "date": "gte 2024-07-05", "persons": 1 }}
+
+---
 
 ## entities
 {state_entities}
@@ -186,11 +202,11 @@ def get_flights_SQL_chain(llm):
         new_results = db.run(new_sql_query)
         if new_results:
             response = (
-                "## 원래 **고객이 원한 날짜에 항공편이 없어** 출발일을 조정하여 새로 검색한 결과라는 것을 강조하기##\n"
+                "## 원래 **고객이 원하는 날짜에 항공편이 없어** 출발일을 조정하여 새로 검색한 결과라는 것을 강조하기##\n"
                 + new_results
             )
         else:
-            response = "원래 고객이 원한 날짜 앞뒤로 항공편이 없으니 죄송함을 표현 후 새로운 항공편 검색 원하는지 물어보기"
+            response = "원래 고객이 원하는 항공편이 없으니 죄송함을 표현 후 새로운 항공편 검색 원하는지 물어보기"
 
         return {"sql_query": new_sql_query, "results": response}
 
