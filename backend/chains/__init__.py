@@ -3,6 +3,8 @@ from .flights import (
     get_flights_chain,
     get_flights_SQL_chain,
 )
+from .rag import get_QnA_chain
+from .intents import get_intent_classifier
 from ..callbacks import FlightConditionCallbackHandler
 
 import os
@@ -13,12 +15,7 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-
 load_dotenv(find_dotenv())
-
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_PROJECT"] = "jinair"
 
 
 MODEL_NAME = "gpt-3.5-turbo-0125"
@@ -39,7 +36,7 @@ prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are a helpful assistant. When calling a function or tool, use raw_input",
+            "You are a helpful assistant. When calling a function or tool, use raw_input.",
         ),
         ("user", "input: {input}\n\nraw_input: {raw_input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
@@ -47,35 +44,42 @@ prompt = ChatPromptTemplate.from_messages(
 )
 
 
-callbacks = [FlightConditionCallbackHandler()]
+def get_flight_search_agent(llm):
+    callbacks = [FlightConditionCallbackHandler()]
+    chain_entity_flights = get_flights_chain(llm=llm)
+    chain_sql_flights = get_flights_SQL_chain(llm=llm)
+    tool = FlightFinder(
+        llm=llm,
+        slot_filler=chain_entity_flights,
+        sql_runner=chain_sql_flights,
+        callbacks=callbacks,
+    )
+    tools = [tool]
+    agent = create_tool_calling_agent(llm, tools, prompt)
+    agent_executor = AgentExecutor(
+        agent=agent, tools=tools, verbose=True, return_intermediate_steps=True
+    )
 
-chain_entity_flights = get_flights_chain(llm=llm)
-chain_sql_flights = get_flights_SQL_chain(llm=llm)
+    return agent_executor
 
-# tools = [FlightScheduleTool(llm=llm)]
-tool = FlightFinder(
-    llm=llm,
-    slot_filler=chain_entity_flights,
-    sql_runner=chain_sql_flights,
-    callbacks=callbacks,
-)
-tools = [tool]
-agent = create_tool_calling_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(
-    agent=agent, tools=tools, verbose=True, return_intermediate_steps=True
-)
 
-states = {}
-user_input = {
-    "input": "인천에서 도쿄 가는 비행기",
-    "raw_input": "인천에서 도쿄 가는 비행기",
-}
-# for step in agent_executor.iter(user_input):
-#     print(step)
-resp = agent_executor.invoke(user_input)
-print("🤖", resp["output"])
-query = input()
-while query != "exit":
-    resp = agent_executor.invoke({"input": query, "raw_input": query})
-    print("🤖", resp["output"])
-    query = input()
+# states = {}
+# user_input = {
+#     "input": "인천에서 도쿄 가는 비행기",
+#     "raw_input": "인천에서 도쿄 가는 비행기",
+# }
+# # for step in agent_executor.iter(user_input):
+# #     print(step)
+# resp = agent_executor.invoke(user_input)
+# print("🤖", resp["output"])
+# query = input()
+# while query != "exit":
+#     resp = agent_executor.invoke({"input": query, "raw_input": query})
+#     print("🤖", resp["output"])
+#     query = input()
+
+__all__ = [
+    "get_intent_classifier",
+    "get_QnA_chain",
+    "get_flight_search_agent",
+]
