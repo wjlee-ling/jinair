@@ -46,7 +46,7 @@ def load_chains(model_name, temp=0.0):
 
 if "messages" not in sst:
     sst.messages = []
-load_chains(model_name=MODEL_NAME)
+    load_chains(model_name=MODEL_NAME)
 
 # 출력되는 이미지 크기 조정
 st.markdown(
@@ -86,7 +86,6 @@ if prompt := st.chat_input(""):
             {"chat_history": sst.messages, "query": prompt}
         )
 
-        print("🩷", intent)
         if intent.name == "search_flights":
             outputs = sst.flight_search_agent.stream(
                 {
@@ -99,13 +98,13 @@ if prompt := st.chat_input(""):
             )
         elif intent.name == "ask_QnA":
             outputs = sst.QnA_chain.stream(
-                {"input": prompt, "chat_history": sst.messages},
+                {"input": prompt},  # , "chat_history": sst.messages
                 config={"callbacks": [st_callback]},
             )
 
         answer = ""
+        print("🩷" * 3, outputs)
         for output in outputs:
-            print("🩷" * 3, output)
             for msg in output["messages"]:
                 if isinstance(msg, (AIMessageChunk, AIMessage)):
                     msg_chunk = msg.content
