@@ -35,9 +35,11 @@ def load_chains(model_name, temp=0.0):
     anthropic = ChatAnthropic(
         model_name="claude-3-5-sonnet-20240620", temperature=temp, verbose=True
     )
-    llm = ChatOpenAI(model_name=model_name, temperature=temp, verbose=True)
+    openai = ChatOpenAI(model_name=model_name, temperature=temp, verbose=True)
     sst.intent_classifier = get_intent_classifier(anthropic)
-    sst.flight_search_agent = get_flight_search_agent(llm)
+    sst.flight_search_agent = get_flight_search_agent(
+        agent_llm=anthropic, chain_llm=openai
+    )
     sst.QnA_chain = get_QnA_chain(anthropic)
 
     print("🚒 Chains have been newly created.")
@@ -100,15 +102,30 @@ if prompt := st.chat_input(""):
             )
             answer = ""
             for output in outputs:
+                # print("🩷", output)
                 for msg in output["messages"]:
                     if isinstance(msg, (AIMessageChunk, AIMessage)):
+
                         msg_chunk = msg.content
-                        if not answer.endswith(msg_chunk):
-                            answer += "\n" + (msg.content)
-                            sst.reply_placeholder.markdown(answer)
+                        if type(msg_chunk) == str:
+                            if type(eval(msg_chunk)) == list:
+                                for msg_chunk in eval(msg_chunk):
+                                    if "text" in msg_chunk:
+                                        answer += "\n" + (msg_chunk["text"])
+                            else:
+                                ## OpenAI
+                                answer += "\n" + (msg.content)
+
+                        elif type(msg_chunk) == list:
+                            for chunk in msg_chunk:
+                                if "text" in chunk:
+                                    answer += "\n" + (chunk["text"])
+
+                        sst.reply_placeholder.markdown(answer)
 
                 if "intermediate_steps" in output:
                     intermediate = output["intermediate_steps"]
+
             final_answer = answer
             sst.steps.append(intermediate)
 
