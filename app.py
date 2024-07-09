@@ -28,7 +28,7 @@ os.environ["LANGCHAIN_PROJECT"] = "jinair"
 
 st.set_page_config(layout="wide")
 MODEL_NAME = "gpt-3.5-turbo-0125"
-GREETING = "안녕하세요. 🤖 Jaid입니다 😀"
+GREETING = "안녕하세요. 🤖 Jaid입니다! 항공편 조회나 자주묻는질문 검색이 가능해요😀"
 
 
 # @st.cache_resource
