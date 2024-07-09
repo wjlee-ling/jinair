@@ -66,7 +66,7 @@ _template = """Given the query, entities and output format below, you are to:
 1. extract entities from the query \
 2. fill in and update the entities with newly extracted entities.
 
-Make sure not to make up information or infer. You should only **extract** entities from the given query.
+Make sure NOT TO make up information or infer. You should only **extract** entities from the given query.
 Make sure the date is in the format 'YYYY-MM-DD'. And the year ('YYYY') is 2024 if not specified in the query.
 Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if there are such words.
 
@@ -82,7 +82,7 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 8월 이후 인천행 비행기 예약
 
 ## output
-{{ "origin": "", "destination": "인천", "date": "gte 8월", "persons": 1, 'flight_number': '' }}
+{{ "origin": "", "destination": "인천", "date": "gte 8월", "persons": 1, "flight_number": "" }}
 
 ---
 
@@ -90,10 +90,10 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 {{}}
 
 ## query
-7월 8일 인천-나리타 성인 하나 아이 둘
+1월 8일 런던-파리 성인 하나 아이 둘
 
 ## output
-{{ "origin": "인천", "destination": "나리타", "date": "2024-07-08", "persons": 3, "flight_number": ""  }}
+{{ "origin": "런던", "destination": "파리", "date": "2024-01-08", "persons": 3, "flight_number": ""  }}
 
 ---
 
@@ -126,9 +126,9 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 다른 비행기 편은 없어?
 
 ## output
-{{ "origin": "김포", "destination": "제주", "date": "gte 2024-07-05", "persons": 1, "flight_number": "not LJ123" }}
+{{ "origin": "서울/인천", "destination": "제주", "date": "2024-07-05", "persons": 1, "flight_number": "not LJ123" }}
 
----
+Now Begin! Make sure to add or update the entities with infomation extracted from the query.
 
 ## entities
 {state_entities}
@@ -145,20 +145,30 @@ Wrap each column name in double quotes (") to denote them as delimited identifie
 
 Make sure to use `ILIKE` rather than `=` for 'origin' and 'destination'.
 Make sure to use only the columns you can see in the tables below. Be careful to not query for columns that do not exist.
-Make sure to format the values of [input] according to the corresponding data types given in the [table info].
+Make sure to format the values of input according to the corresponding data types given in the table info.
 Make sure to set the year of the date to 2024 even if it is not mentioned.
+Make sure to use the flight_number in the input if it is given and is not empty.
 
 ## table info:
 {table_info}
 
 ## examples
 input:
-{{'origin': '인천', 'destination': '나리타', 'date': '7월 12일', 'persons': 1}}
+{{'origin': '출발지', 'destination': '도착지', 'date': 'YYYY-MM-DD', 'persons': '사람수', 'flight_number': ''}}
 
 SQLQuery: 
-SELECT * FROM flights WHERE origin ILIKE '인천' AND destination ILIKE '나리타' AND departure_date = '2024-07-12' AND persons = 1 LIMIT 3
+SELECT * FROM flights WHERE origin ILIKE '출발지' AND destination ILIKE '도착지' AND departure_date = 'YYYY-MM-DD' AND persons = '사람수' LIMIT 3
 
-## [input]
+---
+
+input:
+{{'origin': '출발지', 'destination': '도착지', 'date': 'YYYY-MM-DD', 'persons': '사람수', 'flight_number': '비행기명'}}
+
+SQLQuery: 
+SELECT * FROM flights WHERE origin ILIKE '출발지' AND destination ILIKE '도착지' AND departure_date = 'YYYY-MM-DD' AND persons = '사람수' AND flight_number ='비행기명' LIMIT 3
+
+## begin!
+input:
 {input}
 
 SQLQuery:
