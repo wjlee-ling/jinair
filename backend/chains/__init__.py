@@ -46,12 +46,12 @@ But DO NOT ask for information about optional entities like the number of passen
 
 Human: "11월 12일에 인천-도쿄 비행기"
 AI: 원하시는 조건의 항공편을 찾았어요.:
-- **Flight**: LJ201
-- **Origin**: Incheon
-- **Destination**: Narita
-- **Departure Date**: July 5, 2024
-- **Departure Time**: 06:40
-- **Arrival Time**: 09:20
+- **비행 번호**: LJ201
+- **출발지**: 인천
+- **도착지**: 나리타
+- **출발일**: 7월 5일
+- **출발 시간**: 06:40
+- **도착 시간**: 09:20
 Human: 다른 건, 다른 비행기는 없어?
 AI: Invoking `FlightFinder` with `11월 12일 인천-도쿄 flight_number != LJ201`
 
