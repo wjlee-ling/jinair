@@ -71,11 +71,12 @@ for i, message in enumerate(sst.messages):
     with st.chat_message(role):
         st.markdown(message.content)
 
-        if role == "ai":
+        if role == "ai" and sst.steps[i]:
             with st.expander("🤖 내부 단계", expanded=False):
-                st.write(sst.steps[i // 2])
+                st.write(sst.steps[i])
 
 if prompt := st.chat_input(""):
+    sst.steps.append(None)
     with st.chat_message("human"):
         st.markdown(prompt)
 
@@ -110,6 +111,7 @@ if prompt := st.chat_input(""):
                 if "intermediate_steps" in output:
                     intermediate = output["intermediate_steps"]
             final_answer = answer
+            sst.steps.append(intermediate)
 
         elif intent.name == "ask_QnA":
             outputs = sst.QnA_chain.invoke(
@@ -118,7 +120,7 @@ if prompt := st.chat_input(""):
             )
             sst.reply_placeholder.markdown(outputs)
             final_answer = outputs
+            sst.steps.append(None)
 
     sst.messages.append(HumanMessage(content=prompt))
     sst.messages.append(AIMessage(content=final_answer))
-    sst.steps.append(intermediate)
