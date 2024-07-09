@@ -9,12 +9,12 @@ import streamlit as st
 
 from dotenv import find_dotenv, load_dotenv
 from streamlit import session_state as sst
+from langchain_anthropic import ChatAnthropic
 from langchain_community.callbacks import StreamlitCallbackHandler
 from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
     HumanMessage,
-    SystemMessage,
 )
 from langchain_openai import ChatOpenAI
 
@@ -30,14 +30,13 @@ MODEL_NAME = "gpt-3.5-turbo-0125"
 GREETING = "안녕하세요. 🤖 Jaid입니다 😀"
 
 
-def refresh():
-    st.rerun()
-
-
 @st.cache_resource
 def load_chains(model_name, temp=0.0):
+    anthropic = ChatAnthropic(
+        model_name="claude-3-5-sonnet-20240620", temperature=temp, verbose=True
+    )
     llm = ChatOpenAI(model_name=model_name, temperature=temp, verbose=True)
-    sst.intent_classifier = get_intent_classifier(llm)
+    sst.intent_classifier = get_intent_classifier(anthropic)
     sst.flight_search_agent = get_flight_search_agent(llm)
     sst.QnA_chain = get_QnA_chain(llm)
 
@@ -46,6 +45,7 @@ def load_chains(model_name, temp=0.0):
 
 if "messages" not in sst:
     sst.messages = []
+    sst.steps = []
     load_chains(model_name=MODEL_NAME)
 
 # 출력되는 이미지 크기 조정
@@ -70,9 +70,9 @@ for i, message in enumerate(sst.messages):
     with st.chat_message(role):
         st.markdown(message.content)
 
-        # if role == "ai":
-        #     with st.expander("🤖 내부 단계", expanded=False):
-        #         st.write(sst.steps[i])
+        if role == "ai":
+            with st.expander("🤖 내부 단계", expanded=False):
+                st.write(sst.steps[i // 2])
 
 if prompt := st.chat_input(""):
     with st.chat_message("human"):
@@ -105,12 +105,12 @@ if prompt := st.chat_input(""):
                             answer += "\n" + (msg.content)
                             sst.reply_placeholder.markdown(answer)
 
-                # if "intermediate_steps" in output:
-                #     intermediate = output["intermediate_steps"]
+                if "intermediate_steps" in output:
+                    intermediate = output["intermediate_steps"]
             final_answer = answer
 
         elif intent.name == "ask_QnA":
-            outputs = sst.QnA_chain.stream(
+            outputs = sst.QnA_chain.invoke(
                 {"input": prompt},  # , "chat_history": sst.messages
                 # config={"callbacks": [st_callback]},
             )
@@ -119,5 +119,4 @@ if prompt := st.chat_input(""):
 
     sst.messages.append(HumanMessage(content=prompt))
     sst.messages.append(AIMessage(content=final_answer))
-    # sst.steps.append(None)
-    # sst.steps.append(intermediate)
+    sst.steps.append(intermediate)
