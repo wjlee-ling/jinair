@@ -15,7 +15,6 @@ from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
     HumanMessage,
-    get_buffer_string,
 )
 from langchain_openai import ChatOpenAI
 
@@ -39,7 +38,7 @@ def load_chains(model_name, temp=0.0):
     llm = ChatOpenAI(model_name=model_name, temperature=temp, verbose=True)
     sst.intent_classifier = get_intent_classifier(anthropic)
     sst.flight_search_agent = get_flight_search_agent(llm)
-    sst.QnA_chain = get_QnA_chain(llm)
+    sst.QnA_chain = get_QnA_chain(anthropic)
 
     print("🚒 Chains have been newly created.")
 
@@ -114,12 +113,14 @@ if prompt := st.chat_input(""):
             sst.steps.append(intermediate)
 
         elif intent.name == "ask_QnA":
-            outputs = sst.QnA_chain.invoke(
+            outputs = sst.QnA_chain.stream(
                 {"input": prompt},  # , "chat_history": sst.messages
-                # config={"callbacks": [st_callback]},
+                config={"callbacks": [st_callback]},
             )
-            sst.reply_placeholder.markdown(outputs)
-            final_answer = outputs
+            with sst.reply_placeholder:
+                final_answer = st.write_stream(outputs)
+
+            sst.reply_placeholder.markdown(final_answer)
             sst.steps.append(None)
 
     sst.messages.append(HumanMessage(content=prompt))
