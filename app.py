@@ -15,6 +15,7 @@ from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
     HumanMessage,
+    get_buffer_string,
 )
 from langchain_openai import ChatOpenAI
 
@@ -30,7 +31,7 @@ MODEL_NAME = "gpt-3.5-turbo-0125"
 GREETING = "안녕하세요. 🤖 Jaid입니다 😀"
 
 
-@st.cache_resource
+# @st.cache_resource
 def load_chains(model_name, temp=0.0):
     anthropic = ChatAnthropic(
         model_name="claude-3-5-sonnet-20240620", temperature=temp, verbose=True
@@ -87,9 +88,10 @@ if prompt := st.chat_input(""):
         )
 
         if intent.name == "search_flights":
+            chat_history = sst.messages[-2:] if len(sst.messages) > 1 else []
             outputs = sst.flight_search_agent.stream(
                 {
-                    "input": prompt,
+                    "chat_history": chat_history,
                     "raw_input": prompt,
                 },
                 config={

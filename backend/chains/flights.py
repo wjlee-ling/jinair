@@ -2,7 +2,7 @@ import os
 import re
 
 from dotenv import find_dotenv, load_dotenv
-from typing import Type
+from typing import Optional
 
 from langchain.chains import create_sql_query_chain
 from langchain.output_parsers import PydanticOutputParser
@@ -39,6 +39,7 @@ class FlightCondition(BaseModel):
     destination: str = Field(description="destination city or aiport the user flies to")
     date: str = Field(description="date the user wants to book a flight for")
     persons: int = Field(1, description="number of persons for booking")
+    flight_number: Optional[str] = Field("", description="flight number of the flight")
     # follow_up: str = Field(description="follow up question for necessary entities")
     # price: Optional[int] = Field(None, description="price of the flight")
 
@@ -81,7 +82,7 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 8월 이후 인천행 비행기 예약
 
 ## output
-{{ "origin": "", "destination": "인천", "date": "gte 8월", "persons": 1 }}
+{{ "origin": "", "destination": "인천", "date": "gte 8월", "persons": 1, 'flight_number': '' }}
 
 ---
 
@@ -92,7 +93,7 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 7월 8일 인천-나리타 성인 하나 아이 둘
 
 ## output
-{{ "origin": "인천", "destination": "나리타", "date": "2024-07-08", "persons": 3 }}
+{{ "origin": "인천", "destination": "나리타", "date": "2024-07-08", "persons": 3, "flight_number": ""  }}
 
 ---
 
@@ -103,18 +104,29 @@ Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if
 제주 가는 비행기
 
 ## output
-{{ "origin": "", "destination": "제주", "date": "2024-08-19", "persons": 1 }}
+{{ "origin": "", "destination": "제주", "date": "2024-08-19", "persons": 1, "flight_number": ""  }}
 
 ---
 
 ## entities
-{{ 'origin': '서울/인천', 'destination': '제주', 'date': 'gte 2024-07-05', 'persons': 1 }}
+{{ 'origin': '서울/인천', 'destination': '제주', 'date': 'gte 2024-07-05', 'persons': 1, "flight_number": ""  }}
 
 ## query
 김포에서 가는 건 없어?
 
 ## output
-{{ "origin": "김포", "destination": "제주", "date": "gte 2024-07-05", "persons": 1 }}
+{{ "origin": "김포", "destination": "제주", "date": "gte 2024-07-05", "persons": 1, "flight_number": "" }}
+
+---
+
+## entities
+{{ "origin": "서울/인천", 'destination': '제주', 'date': '2024-07-05', 'persons': 1, 'flight_number': 'LJ123' }}
+
+## query
+다른 비행기 편은 없어?
+
+## output
+{{ "origin": "김포", "destination": "제주", "date": "gte 2024-07-05", "persons": 1, "flight_number": "not LJ123" }}
 
 ---
 
@@ -259,7 +271,11 @@ class FlightFinder(BaseTool):
     name = "FlightFinder"
 
     def _is_slot_empty(self, entities: dict):
-        empty_slots = [entity for entity, value in entities.items() if value == ""]
+        empty_slots = [
+            entity
+            for entity, value in entities.items()
+            if (entity != "flight_number" and value == "")
+        ]
         if empty_slots == []:
             return False
         return empty_slots
@@ -272,7 +288,7 @@ class FlightFinder(BaseTool):
         states = self.callbacks[0].entities
         entities = self.slot_filler.invoke(
             {"query": query, "state_entities": states},
-            config={"callbacks": self.callbacks},
+            config={"callbacks": self.callbacks, "run_name": "fill_slots"},
         ).dict()
 
         if empty_slots := self._is_slot_empty(entities):
