@@ -23,7 +23,7 @@ from langchain_openai import ChatOpenAI
 
 load_dotenv(find_dotenv())
 
-os.environ["LANGCHAIN_TRACING_V2"] = "false"
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"] = "jinair"
 
