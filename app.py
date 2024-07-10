@@ -101,7 +101,6 @@ if prompt := st.chat_input(""):
                 callbacks=[st_callback],
                 inputs={"chat_history": chat_history, "raw_input": prompt},
             )
-            print("🩷 answer: ", answer)
             sst.reply_placeholder.markdown(answer)
 
             final_answer = answer
