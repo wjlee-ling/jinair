@@ -1,3 +1,4 @@
+from backend.api import request_LLM_api
 from backend.chains import (
     get_intent_classifier,
     get_QnA_chain,
@@ -35,11 +36,11 @@ def load_chains(model_name, temp=0.0):
     anthropic = ChatAnthropic(
         model_name="claude-3-5-sonnet-20240620", temperature=temp, verbose=True
     )
-    openai_agent = ChatOpenAI(model_name="gpt-4o", temperature=temp, verbose=True)
+    openai_4o = ChatOpenAI(model_name="gpt-4o", temperature=temp, verbose=True)
     openai = ChatOpenAI(model_name=model_name, temperature=temp, verbose=True)
-    sst.intent_classifier = get_intent_classifier(anthropic)
+    sst.intent_classifier = get_intent_classifier(openai)
     sst.flight_search_agent = get_flight_search_agent(
-        agent_llm=openai_agent, chain_llm=openai
+        agent_llm=anthropic, chain_llm=openai
     )
     sst.QnA_chain = get_QnA_chain(anthropic)
 
@@ -73,9 +74,9 @@ for i, message in enumerate(sst.messages):
     with st.chat_message(role):
         st.markdown(message.content)
 
-        if role == "ai" and sst.steps[i]:
-            with st.expander("🤖 내부 단계", expanded=False):
-                st.write(sst.steps[i])
+        # if role == "ai" and sst.steps[i]:
+        #     with st.expander("🤖 내부 단계", expanded=False):
+        #         st.write(sst.steps[i])
 
 if prompt := st.chat_input(""):
     sst.steps.append(None)
@@ -92,45 +93,52 @@ if prompt := st.chat_input(""):
 
         if intent.name == "search_flights":
             chat_history = sst.messages[-2:] if len(sst.messages) > 1 else []
-            outputs = sst.flight_search_agent.stream(
-                {
-                    "chat_history": chat_history,
-                    "raw_input": prompt,
-                },
-                config={
-                    "callbacks": [st_callback],
-                },
+            answer = request_LLM_api(
+                chain=sst.flight_search_agent,
+                callbacks=[st_callback],
+                inputs={"chat_history": chat_history, "raw_input": prompt},
             )
-            answer = ""
-            for output in outputs:
-                print("🩷", output)
-                for msg in output["messages"]:
-                    if isinstance(msg, (AIMessageChunk, AIMessage)):
-                        msg_chunk = msg.content
-                        if type(msg_chunk) == str:
-                            try:
-                                if msg_chunk != "" and type(eval(msg_chunk)) == list:
-                                    for msg_chunk in eval(msg_chunk):
-                                        if "text" in msg_chunk:
-                                            answer += "\n" + (msg_chunk["text"])
-                                else:
-                                    ## OpenAI
-                                    answer += "\n" + (msg.content)
-                            except:
-                                answer += "\n" + (msg.content)
+            sst.reply_placeholder.markdown(answer)
+            # outputs = sst.flight_search_agent.astream_events(
+            #     {
+            #         "chat_history": chat_history,
+            #         "raw_input": prompt,
+            #     },
+            #     config={
+            #         "callbacks": [st_callback],
+            #     },
+            # )
+            # answer = ""
+            # for output in outputs:
+            #     print("🩷", output)
 
-                        elif type(msg_chunk) == list:
-                            for chunk in msg_chunk:
-                                if "text" in chunk:
-                                    answer += "\n" + (chunk["text"])
+            # for msg in output["messages"]:
+            #     if isinstance(msg, (AIMessageChunk, AIMessage)):
+            #         msg_chunk = msg.content
+            #         if type(msg_chunk) == str:
+            #             try:
+            #                 if msg_chunk != "" and type(eval(msg_chunk)) == list:
+            #                     for msg_chunk in eval(msg_chunk):
+            #                         if "text" in msg_chunk:
+            #                             answer += "\n" + (msg_chunk["text"])
+            #                 else:
+            #                     ## OpenAI
+            #                     answer += "\n" + (msg.content)
+            #             except:
+            #                 answer += "\n" + (msg.content)
 
-                        sst.reply_placeholder.markdown(answer)
+            #         elif type(msg_chunk) == list:
+            #             for chunk in msg_chunk:
+            #                 if "text" in chunk:
+            #                     answer += "\n" + (chunk["text"])
 
-                if "intermediate_steps" in output:
-                    intermediate = output["intermediate_steps"]
+            #         sst.reply_placeholder.markdown(answer)
+
+            # if "intermediate_steps" in output:
+            #     intermediate = output["intermediate_steps"]
 
             final_answer = answer
-            sst.steps.append(intermediate)
+            # sst.steps.append(intermediate)
 
         elif intent.name == "ask_QnA":
             outputs = sst.QnA_chain.stream(
