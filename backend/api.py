@@ -10,16 +10,16 @@ def request_LLM_API(chain, callbacks, inputs):
         inputs,
         config={"callbacks": callbacks},
     ):
-        print(chunk)
+        # print(chunk)
         for msg in chunk["messages"]:
             if isinstance(msg.content, str) and isinstance(eval(msg.content), list):
                 # Anthropic-specific
                 answer += eval(msg.content)[0]["text"]
-            elif isinstance(msg, AIMessageChunk):
-                # just before using the tool
-                answer += msg.content
-            elif isinstance(msg, AIMessage):
-                # after using the tool
-                answer += msg.content
+            elif isinstance(msg, AIMessageChunk) or isinstance(msg, AIMessage):
+                # just before using the tool or after using the tool.
+                try:
+                    answer += msg.content
+                except TypeError:
+                    answer += msg.content[0]["text"]
 
     return answer
