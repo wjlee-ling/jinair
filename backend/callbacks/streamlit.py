@@ -27,7 +27,6 @@ def _convert_newlines(text: Any) -> str:
         return text.replace("\n", "  \n")
     elif isinstance(text, list):
         # list of dict of {'text': '...', 'type': 'text', 'index': 0} insteads of str
-        print("🍎" * 3, text)
         text = text[0]["text"]
         return text.replace("\n", "  \n")
 
