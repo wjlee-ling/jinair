@@ -1,4 +1,6 @@
 from backend.api import request_LLM_API
+
+from backend.callbacks import CustomStreamlitCallbackHandler
 from backend.chains import (
     get_intent_classifier,
     get_QnA_chain,
@@ -84,7 +86,8 @@ if prompt := st.chat_input(""):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        st_callback = StreamlitCallbackHandler(st.container())
+        st_callback = CustomStreamlitCallbackHandler(st.container())
+        # st_callback = StreamlitCallbackHandler(st.container())
         sst.reply_placeholder = st.empty()
 
         intent = sst.intent_classifier.invoke(
