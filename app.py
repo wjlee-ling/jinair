@@ -1,4 +1,4 @@
-from backend.api import request_LLM_api
+from backend.api import request_LLM_API
 from backend.chains import (
     get_intent_classifier,
     get_QnA_chain,
@@ -21,7 +21,7 @@ from langchain_openai import ChatOpenAI
 
 load_dotenv(find_dotenv())
 
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"] = "jinair"
 
@@ -93,52 +93,15 @@ if prompt := st.chat_input(""):
 
         if intent.name == "search_flights":
             chat_history = sst.messages[-2:] if len(sst.messages) > 1 else []
-            answer = request_LLM_api(
+            answer = request_LLM_API(
                 chain=sst.flight_search_agent,
                 callbacks=[st_callback],
                 inputs={"chat_history": chat_history, "raw_input": prompt},
             )
+            print("🩷 answer: ", answer)
             sst.reply_placeholder.markdown(answer)
-            # outputs = sst.flight_search_agent.astream_events(
-            #     {
-            #         "chat_history": chat_history,
-            #         "raw_input": prompt,
-            #     },
-            #     config={
-            #         "callbacks": [st_callback],
-            #     },
-            # )
-            # answer = ""
-            # for output in outputs:
-            #     print("🩷", output)
-
-            # for msg in output["messages"]:
-            #     if isinstance(msg, (AIMessageChunk, AIMessage)):
-            #         msg_chunk = msg.content
-            #         if type(msg_chunk) == str:
-            #             try:
-            #                 if msg_chunk != "" and type(eval(msg_chunk)) == list:
-            #                     for msg_chunk in eval(msg_chunk):
-            #                         if "text" in msg_chunk:
-            #                             answer += "\n" + (msg_chunk["text"])
-            #                 else:
-            #                     ## OpenAI
-            #                     answer += "\n" + (msg.content)
-            #             except:
-            #                 answer += "\n" + (msg.content)
-
-            #         elif type(msg_chunk) == list:
-            #             for chunk in msg_chunk:
-            #                 if "text" in chunk:
-            #                     answer += "\n" + (chunk["text"])
-
-            #         sst.reply_placeholder.markdown(answer)
-
-            # if "intermediate_steps" in output:
-            #     intermediate = output["intermediate_steps"]
 
             final_answer = answer
-            # sst.steps.append(intermediate)
 
         elif intent.name == "ask_QnA":
             outputs = sst.QnA_chain.stream(
