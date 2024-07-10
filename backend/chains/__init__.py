@@ -7,11 +7,9 @@ from .rag import get_QnA_chain
 from .intents import get_intent_classifier
 from ..callbacks import FlightConditionCallbackHandler
 
-import os
 from dotenv import find_dotenv, load_dotenv
 
 from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
@@ -23,13 +21,6 @@ EMBEDDING_MODEL_NAME = "text-embedding-3-small"
 
 llm = ChatOpenAI(model_name=MODEL_NAME, temperature=0.0, verbose=True)
 embedding_model = OpenAIEmbeddings(model=EMBEDDING_MODEL_NAME)
-
-# response = chain_entity_flights.invoke(
-#     {"query": "1월 후에 인천에서 도쿄 가는 비행기", "state_entities": {}}
-# )
-# print(response.dict())
-# sql_command = chain_sql_flights.invoke({"question": str(response.dict())})
-# print(sql_command)
 
 ## agent
 prompt = ChatPromptTemplate.from_messages(
@@ -98,21 +89,6 @@ def get_flight_search_agent(agent_llm, chain_llm):
 
     return agent_executor
 
-
-# states = {}
-# user_input = {
-#     "input": "인천에서 도쿄 가는 비행기",
-#     "raw_input": "인천에서 도쿄 가는 비행기",
-# }
-# # for step in agent_executor.iter(user_input):
-# #     print(step)
-# resp = agent_executor.invoke(user_input)
-# print("🤖", resp["output"])
-# query = input()
-# while query != "exit":
-#     resp = agent_executor.invoke({"input": query, "raw_input": query})
-#     print("🤖", resp["output"])
-#     query = input()
 
 __all__ = [
     "get_intent_classifier",
