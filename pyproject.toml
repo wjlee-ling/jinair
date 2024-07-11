@@ -18,6 +18,7 @@ pinecone-text = "^0.9.0"
 kiwipiepy = "^0.18.0"
 langchain-teddynote = "^0.0.7"
 langchain-anthropic = "^0.1.19"
+langserve = {extras = ["server"], version = "^0.2.2"}
 
 
 [build-system]
