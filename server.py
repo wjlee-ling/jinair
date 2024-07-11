@@ -3,23 +3,12 @@
 #     get_flight_search_agent,
 # )
 from api import run_flight_search, FlightSearchInput, FlightSearchOutput
-import os
 
-from dotenv import find_dotenv, load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.runnables import RunnableLambda
 from langserve import add_routes
 
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_PROJECT"] = "jinair-api"
-
-load_dotenv(find_dotenv())
-
-
-# openai_4o = ChatOpenAI(model_name="gpt-4o", temperature=0, verbose=True)
-# openai = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0, verbose=True)
 
 app = FastAPI(
     title="Jaid API Server",
