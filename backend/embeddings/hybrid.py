@@ -12,14 +12,26 @@ from langchain_teddynote.community.pinecone import (
     upsert_documents,
 )
 from langchain_teddynote.korean import stopwords
-from pinecone import Pinecone
+from pinecone import Pinecone, ServerlessSpec
 
 
 load_dotenv(find_dotenv())
 INDEX_NAME = "jinair"
 NAMESPACE = "0712"
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small", dimensions=1536)
+
+
+def create_pinecone_index(index_name: str):
+    pc = Pinecone(api_key=PINECONE_API_KEY)
+    if index_name not in pc.list_indexes().names():
+        pc.create_index(
+            name=index_name,
+            dimension=embeddings.dimensions,
+            metric="dotproduct",  # should be "dotproduct" for sparse embeddings
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+        print(pc.describe_index(index_name))
 
 
 def get_pinecone_index(index_name: str):

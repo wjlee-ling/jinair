@@ -1,8 +1,4 @@
-# from backend.chains import (
-#     get_QnA_chain,
-#     get_flight_search_agent,
-# )
-from api import run_flight_search, FlightSearchInput, FlightSearchOutput
+from api import run_flight_search, FlightSearchInput, FlightSearchOutput, QnA_chain
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,6 +31,12 @@ add_routes(
     path="/flight_search",
 )
 
+
+add_routes(
+    app,
+    QnA_chain,
+    path="/QnA",
+)
 
 if __name__ == "__main__":
     import uvicorn
