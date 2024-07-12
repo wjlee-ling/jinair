@@ -1,10 +1,9 @@
-from ..embeddings_bm25 import get_trained_kiwi_retriever
+from ..embeddings.embeddings_bm25 import get_trained_kiwi_retriever
 
 from operator import itemgetter
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
 
 
 CORPUS_PATH = "qna_0708.csv"
@@ -31,11 +30,9 @@ def _strip(string):
     return string.lstrip("A:").strip()
 
 
-prompt = ChatPromptTemplate.from_template(template)
-retriever = get_trained_kiwi_retriever(CORPUS_PATH, ["Q", "A"])
-
-
-def get_QnA_chain(llm):
+def get_QnA_chain(llm, retriever=None):
+    prompt = ChatPromptTemplate.from_template(template)
+    retriever = retriever or get_trained_kiwi_retriever(CORPUS_PATH, ["Q", "A"])
     rag_chain = (
         {
             "context": itemgetter("input") | retriever | _format_docs,
