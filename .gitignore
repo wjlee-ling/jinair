@@ -8,3 +8,5 @@ wandb/
 **/*.ipynb
 **/*.DS_Store
 **/*.js
+**/*.json
+**/*.pkl
