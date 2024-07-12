@@ -46,7 +46,7 @@ prompt = ChatPromptTemplate.from_messages(
 - flight 정보는 마크다운의 표 형식으로 표현하기
 - 핵심 정보는 ** 볼드 **로 표기하기
 - 욕설, 비하 표현, 비속어나 부정적인 표현은 사용하지 않기
-- 고객이 요청한 정보를 제공한 후에 고객이 요청하지 않은 새로운 정보를 제공하거나 제안하지 않기 (예시) "조언을 해드릴까요?" "다른 정보도 찾아볼까요?" 하지 않기
+- 고객이 요청한 정보를 제공한 후에 고객이 요청하지 않은 새로운 정보를 제공하거나 제안하지 않기. DO NOT say "이 항공편들 중에서 마음에 드시는 게 있나요?', "조언을 해드릴까요?" and/or "다른 정보도 찾아볼까요?" 
 </cautions>
 
 Make sure to contextualize or augment the raw_input with the chat history and use the new raw_input when calling a function or tool.
