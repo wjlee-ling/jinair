@@ -10,11 +10,14 @@ from langchain_core.runnables import RunnableLambda
 class Intent(Enum):
     search_flights = "search_flights"
     ask_QnA = "ask_QnA"
+    chitchat = "chitchat"
 
 
 _TEMPLATE = """Given the chat history, query and output format, you are to classify the intent of the query.
 Make sure to classify the intent of the query based on the chat history and query given. But refer to relevant information only from the chat history.
 Make sure to return only the intent given in the output format without any prefix or suffix.
+
+If you are uncertain or unable to classify the intent, return "chitchat".
 
 ## output format
 {output_format}

@@ -2,6 +2,7 @@ from backend.api import request_LLM_API
 from backend.embeddings import get_pinecone_kiwi_retriever
 from backend.callbacks import CustomStreamlitCallbackHandler
 from backend.chains import (
+    get_chitchat_chain,
     get_intent_classifier,
     get_QnA_chain,
     get_flight_search_agent,
@@ -46,7 +47,7 @@ def load_chains(model_name, temp=0.0):
     )
     sst.hybrid_retriever = get_pinecone_kiwi_retriever("sparse_encoder.pkl")
     sst.QnA_chain = get_QnA_chain(openai_4o, sst.hybrid_retriever)
-
+    sst.chitchat_chain = get_chitchat_chain(openai)
     print("🚒 Chains have been newly created.")
 
 
@@ -116,6 +117,14 @@ if prompt := st.chat_input(""):
 
             sst.reply_placeholder.markdown(final_answer)
             sst.steps.append(None)
+
+        else:
+            # chitchat or fallback
+            final_answer = sst.chitchat_chain.invoke(
+                {"input": prompt, "chat_history": sst.messages},
+                config={"callbacks": [st_callback]},
+            )
+            sst.reply_placeholder.markdown(final_answer)
 
     sst.messages.append(HumanMessage(content=prompt))
     sst.messages.append(AIMessage(content=final_answer))

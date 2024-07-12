@@ -1,3 +1,4 @@
+from .chitchat import get_chitchat_chain
 from .flights import (
     FlightFinder,
     get_flights_chain,
@@ -91,6 +92,7 @@ def get_flight_search_agent(agent_llm, chain_llm):
 
 
 __all__ = [
+    "get_chitchat_chain",
     "get_intent_classifier",
     "get_QnA_chain",
     "get_flight_search_agent",
