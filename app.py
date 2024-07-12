@@ -97,7 +97,7 @@ if prompt := st.chat_input(""):
         )
 
         if intent.name == "search_flights":
-            chat_history = sst.messages[-2:] if len(sst.messages) > 1 else []
+            chat_history = sst.messages if len(sst.messages) > 1 else []
             answer = request_LLM_API(
                 chain=sst.flight_search_agent,
                 callbacks=[st_callback],
