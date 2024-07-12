@@ -9,4 +9,3 @@ wandb/
 **/*.DS_Store
 **/*.js
 **/*.json
-**/*.pkl
