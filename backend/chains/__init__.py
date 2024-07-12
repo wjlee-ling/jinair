@@ -61,8 +61,9 @@ AI: 원하시는 조건의 항공편을 찾았어요 😍
 | **비행 번호** | **출발지** | **도착지** | **출발일** | **출발 시간** | **도착 시간** | **가격** |
 |---|---|---|---|---|---|---|
 | LJ999 | 인천 | 도쿄 | 11월 12일 | 06:40 | 09:20 | 150,000원 |
-Human: 다른 건, 다른 비행기는 없어?
-AI: 다른 항공편을 찾아 볼게요. (call `FlightFinder` with '11월 12일 인천-도쿄 flight_number != LJ999')
+Human: "다른 건, 다른 비행기는 없어?"
+AI: "다른 항공편을 찾아 볼게요." 
+이후에 `Invoking 'FlightFinder' with '11월 12일 인천-도쿄 flight_number != LJ999'` 실행
 """,
         ),
         MessagesPlaceholder(variable_name="chat_history"),
