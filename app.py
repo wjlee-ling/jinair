@@ -1,5 +1,5 @@
 from backend.api import request_LLM_API
-
+from backend.embeddings import get_pinecone_kiwi_retriever
 from backend.callbacks import CustomStreamlitCallbackHandler
 from backend.chains import (
     get_intent_classifier,
@@ -12,7 +12,8 @@ import streamlit as st
 
 from dotenv import find_dotenv, load_dotenv
 from streamlit import session_state as sst
-from langchain_anthropic import ChatAnthropic
+
+# from langchain_anthropic import ChatAnthropic
 from langchain_community.callbacks import StreamlitCallbackHandler
 from langchain_core.messages import (
     AIMessage,
@@ -34,16 +35,17 @@ GREETING = "안녕하세요. 🤖 Jaid입니다! 항공편 조회나 자주묻�
 
 # @st.cache_resource
 def load_chains(model_name, temp=0.0):
-    anthropic = ChatAnthropic(
-        model_name="claude-3-5-sonnet-20240620", temperature=temp, verbose=True
-    )
+    # anthropic = ChatAnthropic(
+    #     model_name="claude-3-5-sonnet-20240620", temperature=temp, verbose=True
+    # )
     openai_4o = ChatOpenAI(model_name="gpt-4o", temperature=temp, verbose=True)
     openai = ChatOpenAI(model_name=model_name, temperature=temp, verbose=True)
     sst.intent_classifier = get_intent_classifier(openai)
     sst.flight_search_agent = get_flight_search_agent(
-        agent_llm=anthropic, chain_llm=openai
+        agent_llm=openai_4o, chain_llm=openai
     )
-    sst.QnA_chain = get_QnA_chain(anthropic)
+    sst.hybrid_retriever = get_pinecone_kiwi_retriever("sparse_encoder.pkl")
+    sst.QnA_chain = get_QnA_chain(openai_4o, sst.hybrid_retriever)
 
     print("🚒 Chains have been newly created.")
 
