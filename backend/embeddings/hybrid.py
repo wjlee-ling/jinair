@@ -82,6 +82,7 @@ def upsert_korean_spare_embeddings_pinecone(
     return saved_path
 
 
+## 🚨 upsert twice -> create a new test.py and run there
 # pc = Pinecone(api_key=PINECONE_API_KEY)
 # pc_index = get_pinecone_index("jinair")
 # saved_sparse_encoder = upsert_korean_spare_embeddings_pinecone(
