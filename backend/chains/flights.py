@@ -69,6 +69,7 @@ _template = """Given the query, entities and output format below, you are to:
 Make sure NOT TO make up information or infer. You should only **extract** entities from the given query.
 Make sure the date is in the format 'YYYY-MM-DD'. And the year ('YYYY') is 2024 if not specified in the query.
 Make sure to include the comparison operators (eq, gt, gte, lt, lte, or, not) if there are such words.
+Make sure to calculate the total number of persons mentioned in the query and the history.
 
 ## output format
 {output_format}
