@@ -6,7 +6,7 @@ from langchain_core.messages import (
 
 
 def _clean_function_call_message(string):
-    string = re.sub(r"Invoking .+$", "", string)
+    string = re.sub(r"`Invoking .+$", "", string)
     return string
 
 
