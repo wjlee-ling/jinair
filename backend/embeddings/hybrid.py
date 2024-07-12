@@ -82,12 +82,13 @@ def upsert_korean_spare_embeddings_pinecone(
     return saved_path
 
 
-pc_index = get_pinecone_index("jinair")
-saved_sparse_encoder = upsert_korean_spare_embeddings_pinecone(
-    csv_path="qna_0708.csv",
-    csv_loader_params={"metadata_columns": ["대주제", "소주제", "action"]},
-    pinecone_params={
-        "index": pc_index,
-        "namespace": NAMESPACE,
-    },
-)
+# pc = Pinecone(api_key=PINECONE_API_KEY)
+# pc_index = get_pinecone_index("jinair")
+# saved_sparse_encoder = upsert_korean_spare_embeddings_pinecone(
+#     csv_path="qna_0708.csv",
+#     csv_loader_params={"metadata_columns": ["대주제", "소주제", "action"]},
+#     pinecone_params={
+#         "index": pc_index,
+#         "namespace": NAMESPACE,
+#     },
+# )
