@@ -33,13 +33,8 @@ class FlightSearchOutput(BaseModel):
 
 openai_4o = ChatOpenAI(model_name="gpt-4o", temperature=0, verbose=True)
 openai = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0, verbose=True)
-flight_search_agent = get_flight_search_agent(agent_llm=openai_4o, chain_llm=openai)
-
-
-def run_flight_search(input: dict):
-    response = flight_search_agent.invoke(
-        {"raw_input": input["raw_input"], "chat_history": input["chat_history"]}
-    )
-    # for chunk in response["messages"]:
-    #     output += chunk.content
-    return response["output"]
+flight_search_agent = (
+    get_flight_search_agent(agent_llm=openai_4o, chain_llm=openai)
+    .with_types(input_type=FlightSearchInput, output_type=FlightSearchOutput)
+    .with_config({"run_name": "flight_search_agent"})
+)

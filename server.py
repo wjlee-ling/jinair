@@ -1,4 +1,4 @@
-from api import run_flight_search, FlightSearchInput, FlightSearchOutput, QnA_chain
+from api import flight_search_agent, QnA_chain
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,9 +25,7 @@ app.add_middleware(
 
 add_routes(
     app,
-    RunnableLambda(run_flight_search)
-    .with_types(input_type=FlightSearchInput, output_type=FlightSearchOutput)
-    .with_config({"run_name": "run_flight_search"}),
+    flight_search_agent | RunnableLambda(lambda resp: resp["output"]),
     path="/flight_search",
 )
 
