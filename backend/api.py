@@ -1,7 +1,13 @@
+import re
 from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
 )
+
+
+def _clean_function_call_message(string):
+    string = re.sub(r"Invoking .+$", "", string)
+    return string
 
 
 def request_LLM_API(chain, callbacks, inputs):
@@ -22,4 +28,4 @@ def request_LLM_API(chain, callbacks, inputs):
                 except TypeError:
                     answer += msg.content[0]["text"]
 
-    return answer
+    return _clean_function_call_message(answer)
