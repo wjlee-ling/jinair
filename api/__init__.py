@@ -1,6 +1,4 @@
-from .flight_search import (
-    flight_search_agent,
-)
+from .flight_search import flight_search_agent
 from .QnA import QnA_chain
 
 __all__ = [
