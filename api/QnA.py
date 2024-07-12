@@ -1,13 +1,11 @@
 from backend.chains import get_QnA_chain
 from backend.embeddings import get_pinecone_kiwi_retriever
+
 import os
 
-from typing import Any, List, Union
-
 from dotenv import find_dotenv, load_dotenv
-from langchain_core.messages import AIMessage, FunctionMessage, HumanMessage
 from langchain_openai import ChatOpenAI
-from langserve.pydantic_v1 import BaseModel, Field
+from langserve.pydantic_v1 import BaseModel
 
 load_dotenv(find_dotenv())
 
@@ -17,11 +15,7 @@ os.environ["LANGCHAIN_PROJECT"] = "jinair-api"
 
 
 class Input(BaseModel):
-    question: str
-    chat_history: List[Union[HumanMessage, AIMessage, FunctionMessage]] = Field(
-        ...,
-        extra={"widget": {"type": "chat", "question": "question", "output": "output"}},
-    )
+    input: str
 
 
 class Output(BaseModel):
