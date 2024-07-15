@@ -26,7 +26,7 @@ Or else, you should provide the user with the (up to) 2 href links with inner te
 
 Make sure to return the answer of `str` or href links of `list[str]` in the output format without any prefix, suffix and/or explanations to your answer.
 Make sure to extract the href links from the HTML content when returning them. DO NOT make up any href links.
-Make sure to answer naturally without any tags to the question if you can answer the question based on the html.
+Make sure to give a final answer without any tags to the question if you can answer the question based on the html. The answer should be in accordance with the question asked.
 Make sure not to return the href links in the Markdown Link syntax. Just return the href links as a python list of strings when you return href links instead of a string final answer.
 Make sure to return something like "죄송합니다. 질문에 대한 문서를 찾을 수 없습니다." only when you cannot find **any** relevant information to the question and **any href links** in the HTML content at all."""
 
@@ -54,7 +54,7 @@ def get_web_scraper(llm):
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", _TEMPLATE),
-            ("user", "html content:\n{html_content}\n\question:\n{query}"),
+            ("user", "html content:\n{html_content}\nQuestion:\n{query}"),
         ]
     )
 
