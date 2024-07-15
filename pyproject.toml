@@ -20,6 +20,7 @@ langchain-anthropic = "^0.1.19"
 langserve = {extras = ["server"], version = "^0.2.2"}
 langchain-teddynote = "^0.0.11"
 playwright = "^1.45.0"
+bs4 = "^0.0.2"
 
 
 [build-system]

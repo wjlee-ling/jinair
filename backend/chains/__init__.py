@@ -6,6 +6,7 @@ from .flights import (
 )
 from .rag import get_QnA_chain
 from .intents import get_intent_classifier
+from .web_scraper import get_web_scraper, run_web_scraping
 from ..callbacks import FlightConditionCallbackHandler
 
 from dotenv import find_dotenv, load_dotenv
@@ -97,4 +98,6 @@ __all__ = [
     "get_intent_classifier",
     "get_QnA_chain",
     "get_flight_search_agent",
+    "get_web_scraper",
+    "run_web_scraping",
 ]
