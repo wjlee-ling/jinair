@@ -64,7 +64,7 @@ if prompt := st.chat_input(""):
         answer = run_web_scraping(
             prompt,
             sst.openai_4o,
-            root_url="https://help.jinair.com/hc/ko/articles/23199933265689-%ED%8E%B8%EC%9D%98%EC%A0%90-%EA%B2%B0%EC%A0%9C%EB%A1%9C-%EC%98%88%EC%95%BD%EC%9D%84-%ED%96%88%EB%8A%94%EB%8D%B0-%EC%98%88%EC%95%BD%EC%99%84%EB%A3%8C-%EC%9D%B4%EB%A9%94%EC%9D%BC%EC%9D%84-%EB%AA%BB-%EB%B0%9B%EC%95%98%EC%96%B4%EC%9A%94",
+            root_url="https://help.jinair.com/hc/ko/categories/4408759363353-%EC%9E%90%EC%A3%BC-%EB%AC%BB%EB%8A%94-%EC%A7%88%EB%AC%B8-FAQ",
         )
 
         sst.reply_placeholder = st.empty()
