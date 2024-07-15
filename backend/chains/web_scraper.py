@@ -115,7 +115,7 @@ def run_web_scraping(query, llm, root_url: Union[str, List]):
     if isinstance(resp, str):
         return resp
     elif isinstance(resp, list):
-        return run_web_scraping(llm, resp[0])
+        return run_web_scraping(query, llm, resp)
 
 
 # llm = ChatOpenAI(model="gpt-4o", temperature=0.0)
