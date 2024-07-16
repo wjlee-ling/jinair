@@ -1,4 +1,4 @@
-from api import flight_search_agent, QnA_chain, scraper_chain
+from api import chitchat_chain, flight_search_agent, QnA_chain, scraper_chain
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,7 +41,15 @@ add_routes(
     path="/scraper",
 )
 
+add_routes(
+    app,
+    chitchat_chain,
+    path="/chitchat",
+)
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8503)
+    # uvicorn.run(app, host="0.0.0.0", port=8503)
+    uvicorn.run(app, host="localhost", port=8000)

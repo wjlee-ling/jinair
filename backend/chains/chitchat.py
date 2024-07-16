@@ -32,10 +32,9 @@ human: "대한민국 최고의 항공사는?" assistant: "당연히 진에어가
 - 욕설, 비하 표현, 비속어나 부정적인 표현은 사용하지 않기
 </cautions>
 
-Make sure to contextualize the user input with the chat history.
-Make sure to answer in the same language as the input.""",
+Make sure to answer in the same language as the input.""",  # Make sure to contextualize the user input with the chat history.
         ),
-        MessagesPlaceholder(variable_name="chat_history"),
+        # MessagesPlaceholder(variable_name="chat_history"),
         ("user", "input: {input}"),
     ]
 )
@@ -43,8 +42,9 @@ Make sure to answer in the same language as the input.""",
 
 def get_chitchat_chain(llm):
     chain = (
-        {"input": itemgetter("input"), "chat_history": itemgetter("chat_history")}
-        | prompt
+        # {"input": itemgetter("input"), "chat_history": itemgetter("chat_history")}
+        # |
+        prompt
         | llm
         | StrOutputParser()
     ).with_config(run_name="chitchat_chain")
