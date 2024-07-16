@@ -15,7 +15,7 @@ os.environ["LANGCHAIN_PROJECT"] = "jinair-api"
 
 
 class Input(BaseModel):
-    query: str
+    input: str
 
 
 # class Output(BaseModel):
@@ -28,7 +28,7 @@ _fn = partial(
 )
 
 scraper_chain = (
-    RunnableLambda(lambda inputs: _fn(inputs["query"])).with_types(input_type=Input)
+    RunnableLambda(lambda inputs: _fn(inputs["input"])).with_types(input_type=Input)
     # .with_types(input_type=Input, output_type=Output)
     .with_config({"run_name": "run_QnA"})
 )
