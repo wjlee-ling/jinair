@@ -32,11 +32,11 @@ add_routes(
 
 add_routes(
     app,
-    QnA_chain,
+    QnA_chain | RunnableLambda(lambda resp: resp["output"]),
     path="/QnA",
 )
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8503)
