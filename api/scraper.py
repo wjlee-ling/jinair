@@ -30,5 +30,5 @@ _fn = partial(
 scraper_chain = (
     RunnableLambda(lambda inputs: _fn(inputs["input"])).with_types(input_type=Input)
     # .with_types(input_type=Input, output_type=Output)
-    .with_config({"run_name": "run_QnA"})
+    .with_config({"run_name": "run_scraper"})
 )
