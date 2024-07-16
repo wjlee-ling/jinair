@@ -130,7 +130,7 @@ def run_web_scraping(query, llm, root_url: Union[str, List], loops: int = 1):
     elif loops >= 3:
         return "죄송합니다. 질문에 대한 문서를 찾을 수 없습니다."
     elif isinstance(resp, list):
-        return run_web_scraping(query, llm, resp)
+        return run_web_scraping(query, llm, resp, loops + 1)
 
 
 # llm = ChatOpenAI(model="gpt-4o", temperature=0.0)
