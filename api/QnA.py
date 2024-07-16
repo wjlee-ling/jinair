@@ -24,7 +24,7 @@ class Input(BaseModel):
 
 QnA_chain = (
     get_QnA_chain(
-        llm=ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0, verbose=True),
+        llm=ChatOpenAI(model_name="gpt-4o", temperature=0),
         retriever=get_pinecone_kiwi_retriever("sparse_encoder.pkl"),
     ).with_types(input_type=Input)
     # .with_types(input_type=Input, output_type=Output)
