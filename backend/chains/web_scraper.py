@@ -26,6 +26,7 @@ Or else, you should provide the user with the (up to) 2 href links with inner te
 
 Make sure to return the answer of `str` or href links of `list[str]` in the output format without any prefix, suffix and/or explanations to your answer.
 Make sure to extract the href links from the HTML content when returning them. DO NOT make up any href links.
+Make sure to extract and return href links when there is relevant context for the question and an answer but the context trails off or is not finished.
 Make sure to give a final answer without any tags to the question if you can answer the question based on the html. The answer should be in accordance with the question asked.
 Make sure not to return the href links in the Markdown Link syntax. Just return the href links as a python list of strings when you return href links instead of a string final answer.
 Make sure to return something like "죄송합니다. 질문에 대한 문서를 찾을 수 없습니다." only when you cannot find **any** relevant information to the question and **any href links** in the HTML content at all."""
@@ -73,25 +74,32 @@ def get_web_scraper(llm):
 
 
 def _extract_body_content(html_content):
-    soup = BeautifulSoup(html_content, "html.parser")
-    tags_with_inner_text = [tag for tag in soup.body.find_all(True) if tag.text.strip()]
-    a_tags_with_href = [tag for tag in soup.body.find_all("a", href=True)]
-    result_tags = tags_with_inner_text + a_tags_with_href
-    result_tags = list(set(result_tags))
-    return "\n".join([str(tag) for tag in result_tags])
+    soup = BeautifulSoup(html_content, "html.parser").body
 
+    for data in soup(["style", "script", "nav", "footer", "svg"]):
+        # Remove style, script tags
+        data.decompose()
 
-def _remove_duplicates(html_list):
-    unique_contents = []
-    unique_bodies = set()
+    def has_direct_text(tag):
+        return any(isinstance(child, str) and child.strip() for child in tag.children)
 
-    for html in html_list:
-        body_content = _extract_body_content(html)
-        if body_content not in unique_bodies:
-            unique_bodies.add(body_content)
-            unique_contents.append(html)
+    filtered_tags = []
+    for tag in soup.main.find_all(True):
+        if tag.name == "a" and "href" in tag.attrs:
+            filtered_tags.append(f'<a href="{tag["href"]}">{tag.get_text()}</a>')
+        elif has_direct_text(tag):
+            filtered_tags.append(tag)
 
-    return unique_contents
+    result_html = [str(tag) for tag in filtered_tags]
+
+    # tags_with_inner_text = [tag for tag in soup.main.find_all(True) if tag.text.strip()]
+    # a_tags_with_href = [
+    #     f'<a href="{a_tag["href"]}">{a_tag.get_text()}</a>'
+    #     for a_tag in soup.main.find_all("a", href=True)
+    # ]
+    # result_tags = tags_with_inner_text + a_tags_with_href
+    # result_tags = list(set(result_tags))
+    return "\n".join(result_html)
 
 
 def run_web_scraping(query, llm, root_url: Union[str, List]):
@@ -102,8 +110,10 @@ def run_web_scraping(query, llm, root_url: Union[str, List]):
         html = _extract_body_content(html_content)
     else:
         loader = AsyncChromiumLoader(root_url)
-        html_contents = [page.page_content for page in loader.load()]
-        html = "\n\n".join(_remove_duplicates(html_contents))
+        html_contents = [
+            _extract_body_content(page.page_content) for page in loader.load()
+        ]
+        html = "\n\n".join(html_contents)
 
     resp = web_scraper_chain.invoke(
         {
