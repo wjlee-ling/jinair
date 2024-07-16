@@ -55,7 +55,10 @@ def get_web_scraper(llm):
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", _TEMPLATE),
-            ("user", "html content:\n{html_content}\nQuestion:\n{query}"),
+            (
+                "user",
+                "html content:\n{html_content}\nMake sure to return the answer of `str` or href links of `list[str]` in the output format without any prefix, suffix and/or explanations to your answer.\nQuestion:\n{query}",
+            ),
         ]
     )
 
@@ -102,7 +105,7 @@ def _extract_body_content(html_content):
     return "\n".join(result_html)
 
 
-def run_web_scraping(query, llm, root_url: Union[str, List]):
+def run_web_scraping(query, llm, root_url: Union[str, List], loops: int = 1):
     web_scraper_chain = get_web_scraper(llm)
     if isinstance(root_url, str):
         loader = AsyncChromiumLoader([root_url])
@@ -124,6 +127,8 @@ def run_web_scraping(query, llm, root_url: Union[str, List]):
 
     if isinstance(resp, str):
         return resp
+    elif loops >= 3:
+        return "죄송합니다. 질문에 대한 문서를 찾을 수 없습니다."
     elif isinstance(resp, list):
         return run_web_scraping(query, llm, resp)
 

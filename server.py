@@ -1,4 +1,4 @@
-from api import flight_search_agent, QnA_chain
+from api import flight_search_agent, QnA_chain, scraper_chain
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,14 +29,20 @@ add_routes(
     path="/flight_search",
 )
 
+add_routes(
+    app,
+    QnA_chain,
+    path="/QnA",
+)
 
 add_routes(
     app,
-    QnA_chain | RunnableLambda(lambda resp: resp["output"]),
-    path="/QnA",
+    scraper_chain,
+    path="/scraper",
 )
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8503)
+    uvicorn.run(app, host="localhost", port=8000)
+    # uvicorn.run(app, host="0.0.0.0", port=8503)
