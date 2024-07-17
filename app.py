@@ -121,7 +121,8 @@ if prompt := st.chat_input(""):
         else:
             # chitchat or fallback
             final_answer = sst.chitchat_chain.invoke(
-                {"input": prompt, "chat_history": sst.messages},
+                {"input": prompt},
+                # {"input": prompt, "chat_history": sst.messages},
                 config={"callbacks": [st_callback]},
             )
             sst.reply_placeholder.markdown(final_answer)
