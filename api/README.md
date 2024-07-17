@@ -99,4 +99,5 @@ postman을 이용하여 개발/테스트시 설정
   ![postman 헤더 설정 예시](https://github.com/user-attachments/assets/b4d100a8-6e20-433d-9daa-95fab0d6bc24)
 
 - body
-  ![postman body 예시](https://github.com/user-attachments/assets/b93c9870-d1f7-4081-be93-53c459d9ea58)
+  ![postman body 예시: chitchat](https://github.com/user-attachments/assets/039d7e2c-7d32-4f3c-9dad-630e0378e1af)
+  ![postman body 예시: 실시간 scraper](https://github.com/user-attachments/assets/b93c9870-d1f7-4081-be93-53c459d9ea58)
