@@ -128,7 +128,6 @@ def run_web_scraping(query, llm, root_url: Union[str, List], loops: int = 1):
             "html_content": str(html),
         }
     )
-    print("🩷" * 5, resp)
     if isinstance(resp, str):
         urls = re.findall(
             r"/hc/ko/(?:sections|articles)/\d+-(?:%[0-9A-F]{2})(?:-(?:%[0-9A-F]{2})+)*",
