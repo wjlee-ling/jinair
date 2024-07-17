@@ -3,6 +3,7 @@ from .flights import (
     FlightFinder,
     get_flights_chain,
     get_flights_SQL_chain,
+    get_flight_search_API_chain,
 )
 from .rag import get_QnA_chain
 from .intents import get_intent_classifier
@@ -98,6 +99,7 @@ __all__ = [
     "get_intent_classifier",
     "get_QnA_chain",
     "get_flight_search_agent",
+    "get_flight_search_API_chain",
     "get_web_scraper",
     "run_web_scraping",
 ]

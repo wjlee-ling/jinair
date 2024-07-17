@@ -1,5 +1,6 @@
 from backend.chains import (
     get_flight_search_agent,
+    get_flight_search_API_chain,
 )
 import os
 
@@ -38,3 +39,7 @@ flight_search_agent = (
     .with_types(input_type=FlightSearchInput, output_type=FlightSearchOutput)
     .with_config({"run_name": "flight_search_agent"})
 )
+
+flight_search_API_chain = get_flight_search_API_chain(
+    agent_llm=openai_4o, chain_llm=openai
+).with_config({"run_name": "flight_search_API_chain"})

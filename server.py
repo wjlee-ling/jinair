@@ -1,8 +1,12 @@
-from api import chitchat_chain, flight_search_agent, QnA_chain, scraper_chain
+from api import (
+    chitchat_chain,
+    QnA_chain,
+    scraper_chain,
+    flight_search_API_chain,
+)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from langchain_core.runnables import RunnableLambda
 from langserve import add_routes
 
 
@@ -25,7 +29,7 @@ app.add_middleware(
 
 add_routes(
     app,
-    flight_search_agent | RunnableLambda(lambda resp: resp["output"]),
+    flight_search_API_chain,
     path="/flight_search",
 )
 
