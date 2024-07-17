@@ -1,4 +1,5 @@
 import os
+import re
 from operator import itemgetter
 from typing import Union, List
 
@@ -106,17 +107,20 @@ def _extract_body_content(html_content):
 
 
 def run_web_scraping(query, llm, root_url: Union[str, List], loops: int = 1):
+    if loops >= 4:
+        return "죄송합니다. 질문에 대한 문서를 찾을 수 없습니다."
+
     web_scraper_chain = get_web_scraper(llm)
-    if isinstance(root_url, str):
-        loader = AsyncChromiumLoader([root_url])
-        html_content = loader.load()[0].page_content
-        html = _extract_body_content(html_content)
-    else:
+    if isinstance(root_url, list):
         loader = AsyncChromiumLoader(root_url)
         html_contents = [
             _extract_body_content(page.page_content) for page in loader.load()
         ]
         html = "\n\n".join(html_contents)
+    else:
+        loader = AsyncChromiumLoader([root_url])
+        html_content = loader.load()[0].page_content
+        html = _extract_body_content(html_content)
 
     resp = web_scraper_chain.invoke(
         {
@@ -124,11 +128,17 @@ def run_web_scraping(query, llm, root_url: Union[str, List], loops: int = 1):
             "html_content": str(html),
         }
     )
-
+    print("🩷" * 5, resp)
     if isinstance(resp, str):
-        return resp
-    elif loops >= 3:
-        return "죄송합니다. 질문에 대한 문서를 찾을 수 없습니다."
+        urls = re.findall(
+            r"/hc/ko/(?:sections|articles)/\d+-(?:%[0-9A-F]{2})(?:-(?:%[0-9A-F]{2})+)*",
+            resp,
+        )
+        if urls:
+            resp = [BASE_URL + url for url in urls]
+            return run_web_scraping(query, llm, resp, loops + 1)
+        else:
+            return resp
     elif isinstance(resp, list):
         return run_web_scraping(query, llm, resp, loops + 1)
 
