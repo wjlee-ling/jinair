@@ -56,8 +56,8 @@
 ```
 
 - ROOT_URL: [진에어 공식 자주 묻는 질문](https://help.jinair.com/hc/ko/categories/4408759363353)
-- ROOT_URL에서부터 재귀적으로 html를 읽어가며 유저 질의에 1. 최종 답변을 제공하거나 2. 질의와 관련이 있는 URL(최대 2개)을 제공
-  - 무한으로 loop을 도는 것을 방지하기 위해 최대 depth를 3으로 지정
+- ROOT_URL에서부터 재귀적으로 html(내 `a` tag의 inner text 또는 `p`, `h1`, `span` 등 tag의 inner text)를 읽어가며 유저 질의에 1. 최종 답변을 제공하거나 2. 질의와 관련이 있는 URL(최대 2개의 `a.href`) 리턴
+  - url을 리턴하는 경우 해당 url을 읽고 위 과정 반복. 대신 무한으로 loop을 도는 것을 방지하기 위해 최대 depth를 3으로 지정
 
 ### 3. chitchat
 
