@@ -101,3 +101,12 @@ postman을 이용하여 개발/테스트시 설정
 - body
   ![postman body 예시: chitchat](https://github.com/user-attachments/assets/039d7e2c-7d32-4f3c-9dad-630e0378e1af)
   ![postman body 예시: 실시간 scraper](https://github.com/user-attachments/assets/b93c9870-d1f7-4081-be93-53c459d9ea58)
+
+## HTTPS
+
+기본적으로 LangServe/FastAPI는 http로만 접근 가능. 그러나 Google DialogFlow에서 웹훅을 사용하기 위해서는 https로만 접근해야 함. 이에 ngrok으로 http -> https 도메인으로 터널링 필요
+
+0. ngrok 가입 및 클라우드 서버에 설치.
+1. `server.py` 에서 `uvicorn.run(app, host="0.0.0.0", port=8503)` local로 LangServe 서버 돌리기
+2. `ngrok http --domain=[ngrok에서 제공하는 개인 https DNS] 8503`
+3. DialogFlow에서 웹훅 날리기
