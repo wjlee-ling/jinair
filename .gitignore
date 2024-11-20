@@ -11,3 +11,4 @@ wandb/
 **/*.json
 
 qna_0708.csv
+backend/chains/prompts.py
