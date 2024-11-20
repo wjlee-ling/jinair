@@ -9,3 +9,5 @@ wandb/
 **/*.DS_Store
 **/*.js
 **/*.json
+
+qna_0708.csv

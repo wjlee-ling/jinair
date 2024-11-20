@@ -1,6 +1,4 @@
-# JinAir Jaid
-
-- 최신 버전: 0711
+# 항공사 PoC
 
 ## Logic
 
@@ -10,6 +8,7 @@
 - 시나리오
   1. 항공편 검색
   2. QnA
+  3. 기타 일상대화(chitchat)
 
 ### 1. 항공편 검색
 
@@ -26,9 +25,13 @@
 
 ### 2. QnA 검색
 
-- 진에어 챗봇 QnA 일부로 데이터 구축
-- Pinecone 기반 HybridRetriever 사용: (불용어 제거한) Kiwi 기반 bm25 embeddings + OpenAIEmbedding
-- 빠른 응답시간을 위한 `k=2`
+- 진에어 공식 QnA 사용
+- Pinecone 기반 HybridRetriever 사용: (불용어 제거한) bm25 embeddings + OpenAIEmbedding
+- 빠른 응답시간을 위해 `k=2`
+
+### 3. 기타 일상대화 (chitchat)
+
+- '항공편 검색'과 'QnA 검색' 외 기타 시나리오에 대응
 
 ## API
 
